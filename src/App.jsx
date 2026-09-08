@@ -40,16 +40,29 @@ export default function App() {
   const bufferRef = useRef("");
   const lastKeyTimeRef = useRef(0);
 
-  // Sync awal dari file data_scan.json di perangkat
+  // Sync awal dari file data_scan.json (mendukung lokal dev server & hosting Vercel)
   const fetchLocalJSON = () => {
     fetch("/api/scans")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("API dev server tidak aktif");
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setScans(data);
         }
       })
-      .catch((err) => console.log("JSON API sync:", err));
+      .catch(() => {
+        // Fallback saat dibuka di Vercel / serverless: baca dari public/data_scan.json
+        fetch("/data_scan.json")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (Array.isArray(data) && data.length > 0) {
+              setScans((prev) => (prev.length === 0 ? data : prev));
+            }
+          })
+          .catch(() => {});
+      });
   };
 
   useEffect(() => {

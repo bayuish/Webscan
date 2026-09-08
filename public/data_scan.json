@@ -1,0 +1,240 @@
+[
+  {
+    "id": "1788892652620-i08qzqfog",
+    "code": "006900111331",
+    "courier": {
+      "name": "SiCepat Ekspres",
+      "tag": "SICEPAT",
+      "color": "#be185d",
+      "bg": "#fdf2f8",
+      "border": "#fbcfe8"
+    },
+    "timestamp": "01:37:32 WIB",
+    "fullDate": "09/09/2026, 01:37:32 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892650391-9itx6miqs",
+    "code": "006900699629",
+    "courier": {
+      "name": "SiCepat Ekspres",
+      "tag": "SICEPAT",
+      "color": "#be185d",
+      "bg": "#fdf2f8",
+      "border": "#fbcfe8"
+    },
+    "timestamp": "01:37:30 WIB",
+    "fullDate": "09/09/2026, 01:37:30 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892646675-1ulq3ey02",
+    "code": "006900164831",
+    "courier": {
+      "name": "SiCepat Ekspres",
+      "tag": "SICEPAT",
+      "color": "#be185d",
+      "bg": "#fdf2f8",
+      "border": "#fbcfe8"
+    },
+    "timestamp": "01:37:26 WIB",
+    "fullDate": "09/09/2026, 01:37:26 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892287253-o3xmno0pi",
+    "code": "JY1694104354",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:31:27 WIB",
+    "fullDate": "09/09/2026, 01:31:27 WIB",
+    "isDuplicate": true
+  },
+  {
+    "id": "1788892280313-9bzwoe8s7",
+    "code": "JY1694104354",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:31:20 WIB",
+    "fullDate": "09/09/2026, 01:31:20 WIB",
+    "isDuplicate": true
+  },
+  {
+    "id": "1788892253766-kldty3jpn",
+    "code": "JY1691404424",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:53 WIB",
+    "fullDate": "09/09/2026, 01:30:53 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892252933-hev1bfuh2",
+    "code": "JY1691924424",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:52 WIB",
+    "fullDate": "09/09/2026, 01:30:52 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892249401-rv8aa7eag",
+    "code": "JY1602564904",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:49 WIB",
+    "fullDate": "09/09/2026, 01:30:49 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892247075-qjiqbpwxk",
+    "code": "JY1663934614",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:47 WIB",
+    "fullDate": "09/09/2026, 01:30:47 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892244946-7ombhr86s",
+    "code": "JY1643114614",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:44 WIB",
+    "fullDate": "09/09/2026, 01:30:44 WIB",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892240748-e7aj8qbbs",
+    "code": "JY1694104354",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01:30:40 WIB",
+    "fullDate": "09/09/2026, 01:30:40 WIB",
+    "isDuplicate": true
+  },
+  {
+    "id": "1788892038255-3yx3344jg",
+    "code": "JY1683934614",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.27.18",
+    "fullDate": "9/9/2026, 01.27.18",
+    "isDuplicate": true
+  },
+  {
+    "id": "1788892034954-al8xw7e4p",
+    "code": "JY1683934614",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.27.14",
+    "fullDate": "9/9/2026, 01.27.14",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892014460-cqrf4a6i9",
+    "code": "JY1659812734",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.26.54",
+    "fullDate": "9/9/2026, 01.26.54",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892013729-17mnkm1jt",
+    "code": "JY1694104354",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.26.53",
+    "fullDate": "9/9/2026, 01.26.53",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892008935-ndbodazjt",
+    "code": "JY1632113904",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.26.48",
+    "fullDate": "9/9/2026, 01.26.48",
+    "isDuplicate": false
+  },
+  {
+    "id": "1788892005012-c9gajd72l",
+    "code": "JY1672034714",
+    "courier": {
+      "name": "J&T Express",
+      "tag": "J&T",
+      "color": "#09090b",
+      "bg": "#f4f4f5",
+      "border": "#d4d4d8"
+    },
+    "timestamp": "01.26.45",
+    "fullDate": "9/9/2026, 01.26.45",
+    "isDuplicate": false
+  }
+]

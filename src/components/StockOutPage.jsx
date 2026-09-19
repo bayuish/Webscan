@@ -13,7 +13,8 @@ import {
   Upload,
   Image as ImageIcon,
   CheckCircle2,
-  ZoomIn
+  ZoomIn,
+  Camera
 } from "lucide-react";
 import { compressImage } from "../utils/imageCompressor";
 import { exportStockOutPDF } from "../utils/pdfExporter";
@@ -81,6 +82,7 @@ export default function StockOutPage({
   const [dropdownSearch, setDropdownSearch] = useState("");
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   // Image Zoom Modal State
   const [zoomedImage, setZoomedImage] = useState(null);
@@ -611,28 +613,51 @@ export default function StockOutPage({
                   borderRadius: "6px",
                   padding: "16px 20px",
                   background: "var(--bg-card)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
                   transition: "all 0.15s ease"
                 }}
-                onClick={() => fileInputRef.current?.click()}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                   <ImageIcon size={22} color="var(--text-muted)" />
                   <div>
                     <span style={{ fontSize: "12.5px", fontWeight: "600", color: "var(--text-primary)" }}>
-                      Pilih File Foto atau drag file ke sini
+                      Ambil Foto Bukti Pengeluaran
                     </span>
                     <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: "2px 0 0 0" }}>
                       Sistem otomatis mengompres foto hingga di bawah 200 KB
                     </p>
                   </div>
                 </div>
-                <button type="button" className="btn-secondary" style={{ padding: "5px 14px", fontSize: "11.5px" }}>
-                  <Upload size={13} /> Browse Foto Bukti
-                </button>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    style={{ padding: "8px 16px", fontSize: "12px", flex: "1", justifyContent: "center" }}
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={isCompressing}
+                  >
+                    <Camera size={15} /> Buka Kamera
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    style={{ padding: "8px 16px", fontSize: "12px", flex: "1", justifyContent: "center" }}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isCompressing}
+                  >
+                    <Upload size={15} /> Pilih dari Galeri
+                  </button>
+                </div>
+                {/* Hidden file input: Camera */}
+                <input
+                  ref={cameraInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageChange}
+                  style={{ display: "none" }}
+                  disabled={isCompressing}
+                />
+                {/* Hidden file input: Gallery */}
                 <input
                   ref={fileInputRef}
                   type="file"

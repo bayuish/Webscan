@@ -1,5 +1,57 @@
+/**
+ * Membersihkan noise/karakter acak sebelum nomor resi resmi.
+ * Dua kondisi awalan resi utama:
+ * 1. "JY" (J&T Express, misal: JY1480615651)
+ * 2. "002" (SiCepat Ekspres, misal: 002972049810)
+ *
+ * Bila scanner mengirim karakter sampah di depannya (apapun itu: AV, AVAV, acak dll),
+ * sistem secara otomatis mencari posisi "JY" atau "002" dan memotong tepat dari awalan tersebut.
+ */
+export function cleanTrackingCode(rawCode) {
+  if (!rawCode) return "";
+  let code = String(rawCode).trim();
+  const upper = code.toUpperCase();
+
+  // 1. Jika sudah langsung diawali dengan "JY" atau "002", kode sudah bersih
+  if (upper.startsWith("JY") || upper.startsWith("002")) {
+    return code;
+  }
+
+  // 2. Deteksi posisi "JY" atau "002" jika terhalang noise/prefix di depannya
+  const idxJY = upper.indexOf("JY");
+  const idx002 = upper.indexOf("002");
+
+  let targetIndex = -1;
+  if (idxJY !== -1 && idx002 !== -1) {
+    targetIndex = Math.min(idxJY, idx002);
+  } else if (idxJY !== -1) {
+    targetIndex = idxJY;
+  } else if (idx002 !== -1) {
+    targetIndex = idx002;
+  }
+
+  // Jika ditemukan posisi JY atau 002 setelah karakter noise di depannya
+  if (targetIndex > 0) {
+    // Pastikan bukan bagian dari kurir resmi lain seperti SPX yang kebetulan mengandung karakter tersebut
+    const validOtherPrefixes = ["SPX", "JP", "JX", "EZ", "SC", "TKP", "NLID", "IDE", "LP", "POS", "1000"];
+    const isOtherCourier = validOtherPrefixes.some((p) => upper.startsWith(p));
+    if (!isOtherCourier) {
+      return code.slice(targetIndex).trim();
+    }
+  }
+
+  // 3. Fallback: hapus pengulangan 'AV' jika ada pola lain
+  const cleanedAV = code.replace(/^(AV)+/i, "");
+  if (cleanedAV.length >= 2) {
+    return cleanedAV.trim();
+  }
+
+  return code;
+}
+
 export function detectCourier(code) {
-  if (!code) {
+  const cleanCode = cleanTrackingCode(code);
+  if (!cleanCode) {
     return {
       name: "Tidak Diketahui",
       tag: "UNKNOWN",
@@ -9,7 +61,7 @@ export function detectCourier(code) {
     };
   }
   
-  const upper = code.trim().toUpperCase();
+  const upper = cleanCode.toUpperCase();
 
   // SiCepat Ekspres (Pola: 12 digit angka, diawali 00 / 01) -> Khas Warna Biru
   if ((upper.startsWith("00") || upper.startsWith("01")) && upper.length === 12 && /^\d+$/.test(upper)) {

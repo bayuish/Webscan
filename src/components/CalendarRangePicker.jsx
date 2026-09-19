@@ -5,10 +5,12 @@ export default function CalendarRangePicker({
   startDate,
   endDate,
   onChange,
-  onReset
+  onReset,
+  align = "left"
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [hoverDate, setHoverDate] = useState(null);
+  const [placement, setPlacement] = useState(align);
   const [viewDate, setViewDate] = useState(() => {
     if (startDate) {
       const [y, m] = startDate.split("-");
@@ -18,6 +20,20 @@ export default function CalendarRangePicker({
   });
 
   const popoverRef = useRef(null);
+
+  // Auto-detect boundary placement to ensure popover never clips on screen edges
+  useEffect(() => {
+    if (isOpen && popoverRef.current) {
+      const rect = popoverRef.current.getBoundingClientRect();
+      const screenWidth = window.innerWidth || document.documentElement.clientWidth;
+      // If expanding right would overflow screen (330px width), flip to right-aligned
+      if (rect.left + 330 > screenWidth && rect.right >= 330) {
+        setPlacement("right");
+      } else {
+        setPlacement(align);
+      }
+    }
+  }, [isOpen, align]);
 
   // Close on outside click
   useEffect(() => {
@@ -161,7 +177,7 @@ export default function CalendarRangePicker({
 
       {/* Popover Calendar */}
       {isOpen && (
-        <div className="range-picker-popover">
+        <div className={`range-picker-popover align-${placement}`}>
           {/* Quick Presets Bar */}
           <div className="popover-presets">
             <button
@@ -238,19 +254,21 @@ export default function CalendarRangePicker({
               const ymd = formatDateYMD(currentYear, currentMonth, day);
               const status = getDateStatus(ymd);
               const dayOfWeek = new Date(currentYear, currentMonth, day).getDay();
+              const isToday = ymd === getTodayYMD();
 
               return (
                 <div
                   key={ymd}
-                  className={`day-cell-wrap ${status} dow-${dayOfWeek}`}
+                  className={`day-cell-wrap ${status} dow-${dayOfWeek} ${isToday ? "is-today" : ""}`}
                   onClick={() => handleDateClick(ymd)}
                   onMouseEnter={() => {
                     if (startDate && !endDate) {
                       setHoverDate(ymd);
                     }
                   }}
+                  title={isToday ? "Hari Ini" : undefined}
                 >
-                  <button type="button" className={`day-number-btn ${status}`}>
+                  <button type="button" className={`day-number-btn ${status} ${isToday ? "today-btn" : ""}`}>
                     {day}
                   </button>
                 </div>

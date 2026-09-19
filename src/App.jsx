@@ -10,17 +10,59 @@ import {
   ExternalLink,
   MessageCircle,
   Database,
-  Scan
+  Scan,
+  RotateCcw,
+  PackagePlus,
+  TrendingDown,
+  LogOut,
+  UserCheck
 } from "lucide-react";
-import { detectCourier } from "./utils/courier";
+import { detectCourier, cleanTrackingCode } from "./utils/courier";
 import { playCourierSound, playDuplicateSound } from "./utils/audio";
 import { exportToExcel } from "./utils/exporter";
 import PieSummary from "./components/PieSummary";
 import DataTablePage from "./components/DataTablePage";
+import ReturnHubPage from "./components/ReturnHubPage";
+import StockInPage from "./components/StockInPage";
+import StockOutPage from "./components/StockOutPage";
+import LoginPage from "./components/LoginPage";
+import { supabase, getActiveSession, refreshActiveSession } from "./utils/supabaseClient";
 import "./App.css";
 
+// Helper menentukan rute halaman aktif dari URL browser
+const getTabFromPath = () => {
+  if (typeof window === "undefined") return "SCANNER";
+  const path = window.location.pathname.toLowerCase();
+  if (path.startsWith("/stok-masuk") || path.startsWith("/stock-in")) return "STOCK_IN";
+  if (path.startsWith("/stok-keluar") || path.startsWith("/stock-out")) return "STOCK_OUT";
+  if (path.startsWith("/retur") || path.startsWith("/returns")) return "RETURNS";
+  if (path.startsWith("/database") || path.startsWith("/data")) return "DATABASE";
+  return "SCANNER";
+};
+
 export default function App() {
-  const [activeTab, setActiveTab] = useState("SCANNER"); // "SCANNER" | "DATABASE"
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("webscan_auth_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = getTabFromPath();
+    // Jika karyawan, langsung default ke stok keluar
+    const savedUser = localStorage.getItem("webscan_auth_user");
+    if (savedUser) {
+      try {
+        const u = JSON.parse(savedUser);
+        if (u?.role === "EMPLOYEE") return "STOCK_OUT";
+      } catch {}
+    }
+    return tab;
+  });
+
   const [scans, setScans] = useState(() => {
     try {
       const saved = localStorage.getItem("webscan_history");
@@ -29,6 +71,197 @@ export default function App() {
       return [];
     }
   });
+
+  // State Manajemen Stok Masuk & Keluar
+  const [stockInItems, setStockInItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem("webscan_stock_in");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [stockOutItems, setStockOutItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem("webscan_stock_out");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("webscan_stock_in", JSON.stringify(stockInItems));
+    } catch (e) {
+      console.error("Gagal simpan stok masuk:", e);
+    }
+  }, [stockInItems]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("webscan_stock_out", JSON.stringify(stockOutItems));
+    } catch (e) {
+      console.error("Gagal simpan stok keluar:", e);
+    }
+  }, [stockOutItems]);
+
+  const handleAddStockIn = (newItem) => {
+    setStockInItems((prev) => [newItem, ...prev]);
+  };
+
+  const handleUpdateStockIn = (updatedItem) => {
+    setStockInItems((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)));
+  };
+
+  const handleDeleteStockIn = (id) => {
+    setStockInItems((prev) => prev.filter((item) => item.id !== id));
+    // Hapus juga riwayat pengeluaran yang terhubung
+    setStockOutItems((prev) => prev.filter((out) => out.stockInId !== id));
+  };
+
+  const handleAddStockOut = (newItem) => {
+    setStockOutItems((prev) => [newItem, ...prev]);
+  };
+
+  const handleDeleteStockOut = (id) => {
+    setStockOutItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem("webscan_auth_user", JSON.stringify(user));
+    } catch (e) {}
+    if (user.role === "EMPLOYEE") {
+      setActiveTab("STOCK_OUT");
+      if (window.location.pathname !== "/stok-keluar") {
+        window.history.pushState({ tab: "STOCK_OUT" }, "", "/stok-keluar");
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn("SignOut warning:", err);
+    }
+    localStorage.removeItem("webscan_auth_user");
+    setCurrentUser(null);
+  };
+
+  // Sinkronisasi Sesi Supabase pada saat halaman dimuat
+  useEffect(() => {
+    getActiveSession().then((sessionData) => {
+      if (sessionData?.user) {
+        setCurrentUser(sessionData.user);
+        try {
+          localStorage.setItem("webscan_auth_user", JSON.stringify(sessionData.user));
+        } catch (e) {}
+      }
+    });
+
+    // Dengarkan event perubahan otentikasi Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session?.user) {
+          const meta = session.user.user_metadata || {};
+          const emailPrefix = session.user.email ? session.user.email.split("@")[0] : "";
+          const userObj = {
+            id: session.user.id,
+            username: meta.username || emailPrefix,
+            full_name: meta.name || meta.username || emailPrefix,
+            role: meta.role || (emailPrefix === "fathanaj" ? "OWNER" : "EMPLOYEE"),
+            email: session.user.email
+          };
+          setCurrentUser(userObj);
+          try {
+            localStorage.setItem("webscan_auth_user", JSON.stringify(userObj));
+          } catch (e) {}
+        }
+      } else if (event === "SIGNED_OUT") {
+        setCurrentUser(null);
+        localStorage.removeItem("webscan_auth_user");
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  // Heartbeat Aktivitas: Selama pengguna aktif berinteraksi, segarkan sesi secara berkala agar tidak expired / logout otomatis
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let lastActivity = Date.now();
+    const markActive = () => {
+      lastActivity = Date.now();
+    };
+
+    const events = ["mousemove", "keydown", "click", "touchstart", "scroll"];
+    events.forEach((ev) => window.addEventListener(ev, markActive, { passive: true }));
+
+    // Cek setiap 5 menit: Jika pengguna aktif dalam 15 menit terakhir, perbarui sesi Supabase
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const isActiveRecently = now - lastActivity < 15 * 60 * 1000;
+      if (isActiveRecently) {
+        refreshActiveSession();
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      events.forEach((ev) => window.removeEventListener(ev, markActive));
+      clearInterval(interval);
+    };
+  }, [currentUser]);
+
+  // Navigasi halaman dengan URL resmi (HTML5 History API)
+  // Proteksi Karyawan: Karyawan hanya boleh mengakses STOCK_OUT (/stok-keluar)
+  const navigateToTab = (tab) => {
+    if (currentUser?.role === "EMPLOYEE" && tab !== "STOCK_OUT") {
+      return;
+    }
+    setActiveTab(tab);
+    let targetPath = "/";
+    if (tab === "DATABASE") targetPath = "/database";
+    if (tab === "RETURNS") targetPath = "/retur";
+    if (tab === "STOCK_IN") targetPath = "/stok-masuk";
+    if (tab === "STOCK_OUT") targetPath = "/stok-keluar";
+    if (window.location.pathname !== targetPath) {
+      window.history.pushState({ tab }, "", targetPath);
+    }
+  };
+
+  // Dengarkan tombol Back & Forward pada browser
+  useEffect(() => {
+    const handlePopState = () => {
+      const targetTab = getTabFromPath();
+      if (currentUser?.role === "EMPLOYEE") {
+        setActiveTab("STOCK_OUT");
+        if (window.location.pathname !== "/stok-keluar") {
+          window.history.replaceState({ tab: "STOCK_OUT" }, "", "/stok-keluar");
+        }
+      } else {
+        setActiveTab(targetTab);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [currentUser]);
+
+  // Jaga agar karyawan tidak bisa berada di rute selain /stok-keluar
+  useEffect(() => {
+    if (currentUser?.role === "EMPLOYEE" && activeTab !== "STOCK_OUT") {
+      setActiveTab("STOCK_OUT");
+      if (window.location.pathname !== "/stok-keluar") {
+        window.history.replaceState({ tab: "STOCK_OUT" }, "", "/stok-keluar");
+      }
+    }
+  }, [currentUser, activeTab]);
 
   const [inputVal, setInputVal] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,7 +326,8 @@ export default function App() {
   };
 
   const processScan = (rawCode) => {
-    const code = rawCode.trim();
+    // Sanitasi prefix noise scanner seperti AVJY -> JY, AVAV002 -> 002
+    const code = cleanTrackingCode(rawCode);
     if (!code) return;
 
     const courier = detectCourier(code);
@@ -152,9 +386,18 @@ export default function App() {
   };
 
   // Global listener for USB Barcode Scanner
+  // PROTEKSI KETAT: Hanya aktif di Pemindai Live ("/")
+  // Bila user sedang di halaman Retur ("/retur") atau Database ("/database"),
+  // scanner global ini dinonaktifkan total sehingga scan retur tidak masuk ke Pemindai Live!
   useEffect(() => {
+    if (activeTab !== "SCANNER") {
+      bufferRef.current = "";
+      return;
+    }
+
     const handleKeyDown = (e) => {
-      if (e.target && e.target.id === "search-input") {
+      // Abaikan jika user sedang mengetik di input box manapun
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) {
         return;
       }
 
@@ -185,7 +428,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [scans, soundEnabled]);
+  }, [activeTab, scans, soundEnabled]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -235,6 +478,11 @@ export default function App() {
   const duplicateScans = totalScans - uniqueScans;
   const latestScan = scans[0] || null;
 
+  // Jika belum login, tampilkan layar login eksklusif Supabase
+  if (!currentUser) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="app-container">
       {/* Navbar Header */}
@@ -245,55 +493,115 @@ export default function App() {
           </div>
           <div>
             <h1 className="brand-title">
-              WebScan
+              Engkong Stuff
               <span className="status-pill">
                 <span className="status-dot"></span>
                 USB Siap
               </span>
             </h1>
-            <p className="brand-subtitle">Sistem Pemindai Barcode & Nomor Resi</p>
+            <p className="brand-subtitle">Sistem Pemindai Barcode & Inventaris Gudang</p>
           </div>
         </div>
 
         <div className="header-actions">
-          <button
-            className="btn-icon"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            title={soundEnabled ? "Audio Aktif" : "Audio Bisu"}
-          >
-            {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
-          </button>
+          {/* User Profile & Role Info */}
+          <div className="user-profile-header">
+            <div className="user-profile-info">
+              <span className="user-profile-name">
+                <UserCheck size={14} style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }} />
+                {currentUser.username}
+              </span>
+              {currentUser.role === "OWNER" && (
+                <span className="user-role-badge badge-owner">
+                  👑 Owner
+                </span>
+              )}
+            </div>
+            <button
+              className="btn-logout"
+              onClick={handleLogout}
+              title="Keluar / Ganti Akun"
+            >
+              <LogOut size={14} />
+              <span>Keluar</span>
+            </button>
+          </div>
 
-          <button
-            className="btn-secondary"
-            onClick={handleExportExcel}
-            disabled={scans.length === 0}
-            title="Download file Excel (.xlsx) rapi dengan Sheet JNT & SICEPAT"
-          >
-            <FileSpreadsheet size={15} />
-            Export Excel
-          </button>
+          {/* Sound & Export (Khusus Owner) */}
+          {currentUser.role === "OWNER" && (
+            <>
+              <button
+                className="btn-icon"
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                title={soundEnabled ? "Audio Aktif" : "Audio Bisu"}
+              >
+                {soundEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              </button>
+
+              <button
+                className="btn-secondary"
+                onClick={handleExportExcel}
+                disabled={scans.length === 0}
+                title="Download file Excel (.xlsx) rapi dengan Sheet JNT & SICEPAT"
+              >
+                <FileSpreadsheet size={15} />
+                Export Excel
+              </button>
+            </>
+          )}
         </div>
       </header>
 
-      {/* Main Navigation Tabs */}
+      {/* Main Navigation Tabs dengan Hak Akses Berbasis Role */}
       <nav className="main-nav">
-        <button
-          className={`nav-tab ${activeTab === "SCANNER" ? "active" : ""}`}
-          onClick={() => setActiveTab("SCANNER")}
-        >
-          <Scan size={15} />
-          <span>Pemindai Live</span>
-        </button>
+        {currentUser.role === "OWNER" && (
+          <>
+            <button
+              className={`nav-tab ${activeTab === "SCANNER" ? "active" : ""}`}
+              onClick={() => navigateToTab("SCANNER")}
+            >
+              <Scan size={15} />
+              <span>Pemindai Live</span>
+            </button>
+
+            <button
+              className={`nav-tab ${activeTab === "RETURNS" ? "active" : ""}`}
+              onClick={() => navigateToTab("RETURNS")}
+            >
+              <RotateCcw size={15} />
+              <span>Manajemen Retur</span>
+            </button>
+
+            <button
+              className={`nav-tab ${activeTab === "STOCK_IN" ? "active" : ""}`}
+              onClick={() => navigateToTab("STOCK_IN")}
+            >
+              <PackagePlus size={15} />
+              <span>Stok Masuk</span>
+              <span className="nav-badge">{stockInItems.length}</span>
+            </button>
+          </>
+        )}
 
         <button
-          className={`nav-tab ${activeTab === "DATABASE" ? "active" : ""}`}
-          onClick={() => setActiveTab("DATABASE")}
+          className={`nav-tab ${activeTab === "STOCK_OUT" ? "active" : ""}`}
+          onClick={() => navigateToTab("STOCK_OUT")}
         >
-          <Database size={15} />
-          <span>Tabel Data (JSON)</span>
-          <span className="nav-badge">{scans.length}</span>
+          <TrendingDown size={15} />
+          <span>Stok Keluar</span>
+          <span className="nav-badge">{stockOutItems.length}</span>
         </button>
+
+        {currentUser.role === "OWNER" && (
+          <button
+            className={`nav-tab ${activeTab === "DATABASE" ? "active" : ""}`}
+            onClick={() => navigateToTab("DATABASE")}
+          >
+            <Database size={15} />
+            <span>Tabel Data (JSON)</span>
+            <span className="nav-badge">{scans.length}</span>
+          </button>
+        )}
       </nav>
 
       {/* PAGE 1: SCANNER DASHBOARD */}
@@ -529,6 +837,33 @@ export default function App() {
           onExportExcel={handleExportExcel}
           onCopy={handleCopy}
           copiedId={copiedId}
+        />
+      )}
+
+      {/* PAGE 3: RETURN HUB (TIKTOK SHOP RETURNS) */}
+      {activeTab === "RETURNS" && (
+        <ReturnHubPage soundEnabled={soundEnabled} />
+      )}
+
+      {/* PAGE 4: MANAJEMEN STOK MASUK */}
+      {activeTab === "STOCK_IN" && (
+        <StockInPage
+          stockInItems={stockInItems}
+          stockOutItems={stockOutItems}
+          onAddStockIn={handleAddStockIn}
+          onUpdateStockIn={handleUpdateStockIn}
+          onDeleteStockIn={handleDeleteStockIn}
+        />
+      )}
+
+      {/* PAGE 5: MANAJEMEN STOK KELUAR */}
+      {activeTab === "STOCK_OUT" && (
+        <StockOutPage
+          stockInItems={stockInItems}
+          stockOutItems={stockOutItems}
+          onAddStockOut={handleAddStockOut}
+          onDeleteStockOut={handleDeleteStockOut}
+          currentUser={currentUser}
         />
       )}
 

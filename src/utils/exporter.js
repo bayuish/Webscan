@@ -131,7 +131,7 @@ export async function exportToExcel(scans) {
   if (!scans || scans.length === 0) return false;
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "WebScan Enterprise";
+  workbook.creator = "Engkong Stuff";
   workbook.created = new Date();
 
   // Kolom PANJANG telah dihapus

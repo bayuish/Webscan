@@ -27,6 +27,19 @@ import StockInPage from "./components/StockInPage";
 import StockOutPage from "./components/StockOutPage";
 import LoginPage from "./components/LoginPage";
 import { supabase, getActiveSession, refreshActiveSession } from "./utils/supabaseClient";
+import {
+  fetchScansHistory,
+  insertScanRecord,
+  deleteScanRecord,
+  fetchStockInList,
+  insertStockInItem,
+  updateStockInItem,
+  deleteStockInItem,
+  fetchStockOutList,
+  insertStockOutItem,
+  deleteStockOutItem,
+  formatWIBDateTime
+} from "./utils/supabaseDb";
 import "./App.css";
 
 // Helper menentukan rute halaman aktif dari URL browser
@@ -63,70 +76,93 @@ export default function App() {
     return tab;
   });
 
-  const [scans, setScans] = useState(() => {
-    try {
-      const saved = localStorage.getItem("webscan_history");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [scans, setScans] = useState([]);
+  const [stockInItems, setStockInItems] = useState([]);
+  const [stockOutItems, setStockOutItems] = useState([]);
+  const [isLoadingDb, setIsLoadingDb] = useState(true);
 
-  // State Manajemen Stok Masuk & Keluar
-  const [stockInItems, setStockInItems] = useState(() => {
+  // Sync awal dari Database Supabase (Cloud)
+  const loadDatabaseFromSupabase = async () => {
+    setIsLoadingDb(true);
     try {
-      const saved = localStorage.getItem("webscan_stock_in");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
+      const [scansData, stockInData, stockOutData] = await Promise.all([
+        fetchScansHistory(),
+        fetchStockInList(),
+        fetchStockOutList()
+      ]);
+      if (scansData) setScans(scansData);
+      if (stockInData) setStockInItems(stockInData);
+      if (stockOutData) setStockOutItems(stockOutData);
+    } catch (err) {
+      console.error("Gagal memuat data dari Supabase:", err);
+    } finally {
+      setIsLoadingDb(false);
     }
-  });
-
-  const [stockOutItems, setStockOutItems] = useState(() => {
-    try {
-      const saved = localStorage.getItem("webscan_stock_out");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  };
 
   useEffect(() => {
+    loadDatabaseFromSupabase();
+    // Bersihkan cache lama di localStorage agar tidak ada data basi
     try {
-      localStorage.setItem("webscan_stock_in", JSON.stringify(stockInItems));
-    } catch (e) {
-      console.error("Gagal simpan stok masuk:", e);
-    }
-  }, [stockInItems]);
+      localStorage.removeItem("webscan_history");
+      localStorage.removeItem("webscan_stock_in");
+      localStorage.removeItem("webscan_stock_out");
+    } catch (e) {}
+  }, []);
 
-  useEffect(() => {
+  const handleAddStockIn = async (newItem) => {
     try {
-      localStorage.setItem("webscan_stock_out", JSON.stringify(stockOutItems));
-    } catch (e) {
-      console.error("Gagal simpan stok keluar:", e);
+      const saved = await insertStockInItem(newItem);
+      setStockInItems((prev) => [saved || newItem, ...prev]);
+    } catch (err) {
+      console.error("Gagal simpan stok masuk:", err);
+      showToast("Gagal menyimpan stok masuk ke database.", "error");
     }
-  }, [stockOutItems]);
-
-  const handleAddStockIn = (newItem) => {
-    setStockInItems((prev) => [newItem, ...prev]);
   };
 
-  const handleUpdateStockIn = (updatedItem) => {
-    setStockInItems((prev) => prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)));
+  const handleUpdateStockIn = async (updatedItem) => {
+    try {
+      const saved = await updateStockInItem(updatedItem);
+      setStockInItems((prev) =>
+        prev.map((item) => (item.id === updatedItem.id ? (saved || updatedItem) : item))
+      );
+    } catch (err) {
+      console.error("Gagal update stok masuk:", err);
+      showToast("Gagal memperbarui stok masuk di database.", "error");
+    }
   };
 
-  const handleDeleteStockIn = (id) => {
-    setStockInItems((prev) => prev.filter((item) => item.id !== id));
-    // Hapus juga riwayat pengeluaran yang terhubung
-    setStockOutItems((prev) => prev.filter((out) => out.stockInId !== id));
+  const handleDeleteStockIn = async (id) => {
+    try {
+      await deleteStockInItem(id);
+      setStockInItems((prev) => prev.filter((item) => item.id !== id));
+      setStockOutItems((prev) => prev.filter((out) => out.stockInId !== id));
+      showToast("✓ Stok masuk berhasil dihapus dari database.");
+    } catch (err) {
+      console.error("Gagal hapus stok masuk:", err);
+      showToast("Gagal menghapus stok masuk dari database.", "error");
+    }
   };
 
-  const handleAddStockOut = (newItem) => {
-    setStockOutItems((prev) => [newItem, ...prev]);
+  const handleAddStockOut = async (newItem) => {
+    try {
+      const saved = await insertStockOutItem(newItem);
+      setStockOutItems((prev) => [saved || newItem, ...prev]);
+    } catch (err) {
+      console.error("Gagal simpan stok keluar:", err);
+      showToast("Gagal menyimpan stok keluar ke database.", "error");
+    }
   };
 
-  const handleDeleteStockOut = (id) => {
-    setStockOutItems((prev) => prev.filter((item) => item.id !== id));
+  const handleDeleteStockOut = async (id) => {
+    try {
+      await deleteStockOutItem(id);
+      setStockOutItems((prev) => prev.filter((item) => item.id !== id));
+      showToast("✓ Riwayat stok keluar berhasil dihapus dari database.");
+    } catch (err) {
+      console.error("Gagal hapus stok keluar:", err);
+      showToast("Gagal menghapus stok keluar dari database.", "error");
+    }
   };
 
   const handleLoginSuccess = (user) => {
@@ -273,44 +309,7 @@ export default function App() {
   const bufferRef = useRef("");
   const lastKeyTimeRef = useRef(0);
 
-  // Sync awal dari file data_scan.json (mendukung lokal dev server & hosting Vercel)
-  const fetchLocalJSON = () => {
-    fetch("/api/scans")
-      .then((res) => {
-        if (!res.ok) throw new Error("API dev server tidak aktif");
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setScans(data);
-        }
-      })
-      .catch(() => {
-        // Fallback saat dibuka di Vercel / serverless: baca dari public/data_scan.json
-        fetch("/data_scan.json")
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-              setScans((prev) => (prev.length === 0 ? data : prev));
-            }
-          })
-          .catch(() => {});
-      });
-  };
-
-  useEffect(() => {
-    fetchLocalJSON();
-  }, []);
-
-  // Simpan juga ke LocalStorage sebagai backup browser
-  useEffect(() => {
-    try {
-      localStorage.setItem("webscan_history", JSON.stringify(scans));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [scans]);
-
+  // Toast message helper
   const showToast = (message) => {
     setToast(message);
     setTimeout(() => {
@@ -334,28 +333,17 @@ export default function App() {
     const isDuplicate = scans.some((s) => s.code.toLowerCase() === code.toLowerCase());
 
     const now = new Date();
-    // Format waktu Indonesia WIB
-    const timeWIB =
-      now.toLocaleTimeString("id-ID", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false
-      }).replace(/\./g, ":") + " WIB";
-
-    const fullDateWIB =
-      now.toLocaleDateString("id-ID", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-      }) + ", " + timeWIB;
+    const fullDateWIB = formatWIBDateTime(now);
+    const timeParts = fullDateWIB.split(", ");
+    const timeWIB = timeParts.length > 1 ? timeParts[1] : fullDateWIB;
 
     const newScan = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 7)}`,
       code,
       courier,
       timestamp: timeWIB,
       fullDate: fullDateWIB,
+      dateRaw: now.toISOString(),
       isDuplicate
     };
 
@@ -377,12 +365,14 @@ export default function App() {
     // Auto copy resi ke clipboard
     navigator.clipboard.writeText(code).catch(() => {});
 
-    // Simpan otomatis ke file data_scan.json di device
-    fetch("/api/scans", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newScan)
-    }).catch((err) => console.error("Gagal simpan ke data_scan.json:", err));
+    // Simpan otomatis ke database Supabase
+    insertScanRecord(newScan)
+      .then((saved) => {
+        if (saved) {
+          setScans((prev) => prev.map((s) => (s.id === newScan.id ? { ...s, id: saved.id } : s)));
+        }
+      })
+      .catch((err) => console.error("Gagal simpan scan ke Supabase:", err));
   };
 
   // Global listener for USB Barcode Scanner
@@ -453,18 +443,14 @@ export default function App() {
   };
 
   const handleDeleteScan = async (id, code) => {
-    if (!window.confirm(`Hapus nomor resi ${code} dari data_scan.json?`)) return;
+    if (!window.confirm(`Hapus nomor resi ${code} dari database Supabase?`)) return;
     try {
       setScans((prev) => prev.filter((s) => s.id !== id));
-      await fetch("/api/scans/delete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-      showToast(`Resi ${code} berhasil dihapus dari data_scan.json`);
+      await deleteScanRecord(id);
+      showToast(`✓ Resi ${code} berhasil dihapus dari database.`);
     } catch (err) {
       console.error(err);
-      showToast("Gagal menghapus data.");
+      showToast("Gagal menghapus data dari database.");
     }
   };
 
@@ -830,9 +816,10 @@ export default function App() {
         <DataTablePage
           scans={scans}
           onDelete={handleDeleteScan}
-          onRefresh={() => {
-            fetchLocalJSON();
-            showToast("Data dimuat ulang dari data_scan.json");
+          onRefresh={async () => {
+            showToast("Memuat ulang data dari database Supabase...");
+            await loadDatabaseFromSupabase();
+            showToast("✓ Data berhasil disinkronkan dengan database Supabase!");
           }}
           onExportExcel={handleExportExcel}
           onCopy={handleCopy}

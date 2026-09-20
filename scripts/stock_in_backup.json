@@ -1,0 +1,471 @@
+[
+  {
+    "item_code": "tes 2",
+    "character_name": "tes doang",
+    "qty_lusin": 1,
+    "remaining_qty": 1,
+    "entry_date": "2026-09-21 01:35:00"
+  },
+  {
+    "item_code": "t34 58",
+    "character_name": "tes",
+    "qty_lusin": 1,
+    "remaining_qty": 0,
+    "entry_date": "2026-09-21 01:30:00"
+  },
+  {
+    "item_code": "t20 398",
+    "character_name": "superhero",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:29:00"
+  },
+  {
+    "item_code": "surya",
+    "character_name": "anomali",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:29:00"
+  },
+  {
+    "item_code": "mr 467",
+    "character_name": "cewe tidur",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:29:00"
+  },
+  {
+    "item_code": "t20 828",
+    "character_name": "gensin",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:28:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "spongebob",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:28:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "sepatu",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:28:00"
+  },
+  {
+    "item_code": "kg 634",
+    "character_name": "",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:27:00"
+  },
+  {
+    "item_code": "pd",
+    "character_name": "hewan laut",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 01:27:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "ema",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:26:00"
+  },
+  {
+    "item_code": "t20 884",
+    "character_name": "cewe tidur",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:26:00"
+  },
+  {
+    "item_code": "t20 890",
+    "character_name": "stitch",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:25:00"
+  },
+  {
+    "item_code": "mr 452",
+    "character_name": "matahari pelangi",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:25:00"
+  },
+  {
+    "item_code": "gl 28",
+    "character_name": "onepiece",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:25:00"
+  },
+  {
+    "item_code": "mes",
+    "character_name": "hotdog",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:25:00"
+  },
+  {
+    "item_code": "t20 648",
+    "character_name": "sanrio sempol",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:24:00"
+  },
+  {
+    "item_code": "mr 465",
+    "character_name": "sanrio",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:24:00"
+  },
+  {
+    "item_code": "am 1381",
+    "character_name": "burger",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:24:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "koala",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:24:00"
+  },
+  {
+    "item_code": "am 1355",
+    "character_name": "full tungtung",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:23:00"
+  },
+  {
+    "item_code": "t20 607",
+    "character_name": "couple ungu",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:23:00"
+  },
+  {
+    "item_code": "dz 2737",
+    "character_name": "sanrio permen",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:23:00"
+  },
+  {
+    "item_code": "dz 2719",
+    "character_name": "naruto",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:23:00"
+  },
+  {
+    "item_code": "mes",
+    "character_name": "kuda",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:22:00"
+  },
+  {
+    "item_code": "mes",
+    "character_name": "lebah",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:22:00"
+  },
+  {
+    "item_code": "gl 439",
+    "character_name": "kuromi",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:22:00"
+  },
+  {
+    "item_code": "gl 221",
+    "character_name": "unicorn",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:22:00"
+  },
+  {
+    "item_code": "gl 322",
+    "character_name": "tikus",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:21:00"
+  },
+  {
+    "item_code": "gl 311",
+    "character_name": "badut sirkus",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:21:00"
+  },
+  {
+    "item_code": "gl 880",
+    "character_name": "hello kitty",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 01:20:00"
+  },
+  {
+    "item_code": "gl 320",
+    "character_name": "toys story",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:19:00"
+  },
+  {
+    "item_code": "gl 309",
+    "character_name": "capybara",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:19:00"
+  },
+  {
+    "item_code": "gl 313",
+    "character_name": "natal",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:19:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "beruang rainbow",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:19:00"
+  },
+  {
+    "item_code": "t20 881",
+    "character_name": "marvel",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:18:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "gundam",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:18:00"
+  },
+  {
+    "item_code": "kg 752",
+    "character_name": "jerapah",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:18:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "kelomang",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:18:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "sailormoon",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:17:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "lufy onepiece",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:17:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "buah",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:17:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "sanrio hp",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:17:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "pokaco",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 00:16:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "kentang",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-21 00:16:00"
+  },
+  {
+    "item_code": "mr 432",
+    "character_name": "hewan profesi",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:16:00"
+  },
+  {
+    "item_code": "gl 29",
+    "character_name": "twingkel",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:15:00"
+  },
+  {
+    "item_code": "kg 1061",
+    "character_name": "minimouse",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:15:00"
+  },
+  {
+    "item_code": "gl 162",
+    "character_name": "bunga",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:14:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "zombie",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:14:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "beruang gepeng",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:13:00"
+  },
+  {
+    "item_code": "t20 510",
+    "character_name": "cinamorol",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:13:00"
+  },
+  {
+    "item_code": "t20 888",
+    "character_name": "",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:12:00"
+  },
+  {
+    "item_code": "t20 891",
+    "character_name": "badut",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:12:00"
+  },
+  {
+    "item_code": "gl 312",
+    "character_name": "hacipupu",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:12:00"
+  },
+  {
+    "item_code": "gl 38",
+    "character_name": "zootopia",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:11:00"
+  },
+  {
+    "item_code": "gl 308",
+    "character_name": "",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:11:00"
+  },
+  {
+    "item_code": "gl 310",
+    "character_name": "sanrio capybara",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:10:00"
+  },
+  {
+    "item_code": "t20 519",
+    "character_name": "sanrio baby",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:10:00"
+  },
+  {
+    "item_code": "t20 588",
+    "character_name": "naruto",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:10:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "tom jerry pd",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:09:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "minion",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:09:00"
+  },
+  {
+    "item_code": "t20 893",
+    "character_name": "huruf",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:08:00"
+  },
+  {
+    "item_code": "t20 883",
+    "character_name": "hk",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:08:00"
+  },
+  {
+    "item_code": "gl 32",
+    "character_name": "",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-21 00:07:00"
+  },
+  {
+    "item_code": "gl 30",
+    "character_name": "mailong",
+    "qty_lusin": 50,
+    "remaining_qty": 50,
+    "entry_date": "2026-09-20 23:51:00"
+  },
+  {
+    "item_code": "",
+    "character_name": "tom jerry",
+    "qty_lusin": 100,
+    "remaining_qty": 100,
+    "entry_date": "2026-09-20 23:50:00"
+  }
+]

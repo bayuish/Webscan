@@ -23,6 +23,12 @@ import { detectCourier, cleanTrackingCode } from "../utils/courier";
 import { exportToExcel } from "../utils/exporter";
 import CalendarRangePicker from "./CalendarRangePicker";
 import ExcelJS from "exceljs";
+import {
+  fetchReturnPackages,
+  upsertReturnPackage,
+  markReturnAsReceived,
+  clearAllReturnPackages
+} from "../utils/supabaseDb.js";
 
 function extractReturnDateYMD(dateStr) {
   if (!dateStr) return null;
@@ -113,38 +119,25 @@ function detectSheetHeader(rows) {
 }
 
 export default function ReturnHubPage({ soundEnabled = true }) {
-  const [returnItems, setReturnItems] = useState(() => {
-    try {
-      const saved = localStorage.getItem("webscan_return_data");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [returnItems, setReturnItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [scanInput, setScanInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("ALL"); // ALL, PENDING, RECEIVED, or courier name
-  const [lastScannedItem, setLastScannedItem] = useState(null);
-  const [copiedId, setCopiedId] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  // State Rentang Tanggal
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [dateBasis, setDateBasis] = useState("CANCELLED"); // "CANCELLED" | "RECEIVED"
-
-  const inputRef = useRef(null);
-
-  // Simpan data retur ke localStorage setiap ada perubahan
+  // Ambil data retur awal dari Database Supabase (Cloud)
   useEffect(() => {
+    fetchReturnPackages()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setReturnItems(data);
+        }
+      })
+      .catch((err) => console.error("Gagal load data retur dari Supabase:", err))
+      .finally(() => setIsLoading(false));
+
+    // Bersihkan data lama di localStorage
     try {
-      localStorage.setItem("webscan_return_data", JSON.stringify(returnItems));
-    } catch (e) {
-      console.error("Gagal simpan data retur ke localStorage:", e);
-    }
-  }, [returnItems]);
+      localStorage.removeItem("webscan_return_data");
+    } catch (e) {}
+  }, []);
 
   // Autofocus input scanner
   useEffect(() => {
@@ -324,13 +317,13 @@ export default function ReturnHubPage({ soundEnabled = true }) {
           }
         }, 100);
 
-        const updated = prevItems.map((item) => {
-          const k = normalizeResiCode(item.trackingId);
-          if (updatedSyncMap.has(k)) {
-            return updatedSyncMap.get(k);
-          }
-          return item;
-        });
+        // Simpan data baru dan update sinkronisasi ke database Supabase
+        for (const item of newlyAddedItems) {
+          upsertReturnPackage(item).catch((err) => console.error("Gagal upsert retur:", err));
+        }
+        for (const item of Array.from(updatedSyncMap.values())) {
+          upsertReturnPackage(item).catch((err) => console.error("Gagal update sinkronisasi retur:", err));
+        }
 
         return [...updated, ...newlyAddedItems];
       });
@@ -547,11 +540,14 @@ export default function ReturnHubPage({ soundEnabled = true }) {
       setReturnItems((prev) => [newUnsyncedItem, ...prev]);
       setLastScannedItem({ ...newUnsyncedItem, isDuplicateScan: false, isUnsynced: true });
 
+      // Simpan paket retur belum sinkron ke Supabase
+      upsertReturnPackage(newUnsyncedItem).catch((err) => console.error("Gagal simpan paket unsynced ke Supabase:", err));
+
       if (soundEnabled) {
         playCourierSound({ name: courierInfo.name, tag: courierInfo.tag });
       }
 
-      showToast(`⚠️ Paket ${upperCode} Diterima! Status: BELUM SINKRON (Menunggu file TikTok berikutnya).`, "warning");
+      showToast(`⚠️ Paket ${upperCode} Diterima! Status: BELUM SINKRON (Tersimpan di Cloud Supabase).`, "warning");
       return;
     }
 
@@ -575,7 +571,10 @@ export default function ReturnHubPage({ soundEnabled = true }) {
     const newItems = [...returnItems];
     newItems[index] = updatedItem;
     setReturnItems(newItems);
-    setLastScannedItem({ ...updatedItem, isDuplicateScan: false, isUnsynced: item.isSynced === false });
+    setLastScannedItem({ ...updatedItem, isDuplicateScan: false, isUnsynced: updatedItem.isSynced === false });
+
+    // Update status paket di Supabase menjadi 'Sudah Sampai'
+    markReturnAsReceived(item.trackingId).catch((err) => console.error("Gagal update status retur ke Supabase:", err));
 
     // Putar suara kurir yang sesuai
     if (soundEnabled) {
@@ -954,12 +953,12 @@ export default function ReturnHubPage({ soundEnabled = true }) {
     return "badge-default";
   };
 
-  const handleClearAllReturnData = () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus SELURUH data paket retur? Tabel dan data penyimpanan browser akan dikosongkan.")) {
+  const handleClearAllReturnData = async () => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus SELURUH data paket retur dari database Supabase?")) {
       setReturnItems([]);
-      localStorage.removeItem("webscan_return_data");
       setLastScannedItem(null);
-      showToast("Seluruh data retur berhasil dihapus!", "success");
+      await clearAllReturnPackages();
+      showToast("Seluruh data retur berhasil dihapus dari database Supabase!", "success");
     }
   };
 

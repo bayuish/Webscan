@@ -305,6 +305,7 @@ export default function App() {
 
   const [inputVal, setInputVal] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeCourierFilter, setActiveCourierFilter] = useState("ALL");
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [toast, setToast] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
@@ -458,14 +459,45 @@ export default function App() {
     }
   };
 
-  const filteredScans = scans.filter((s) =>
-    s.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.courier.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   const totalScans = scans.length;
-  const uniqueScans = new Set(scans.map((s) => s.code)).size;
-  const duplicateScans = totalScans - uniqueScans;
+  const jntScansCount = scans.filter((s) => {
+    const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+    return tag.includes("J&T") || tag.includes("JNT");
+  }).length;
+  const sicepatScansCount = scans.filter((s) => {
+    const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+    return tag.includes("SICEPAT");
+  }).length;
+  const otherScansCount = scans.filter((s) => {
+    const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+    return !tag.includes("J&T") && !tag.includes("JNT") && !tag.includes("SICEPAT");
+  }).length;
+  const duplicateScans = scans.filter((s) => s.isDuplicate).length;
+
+  const filteredScans = scans.filter((s) => {
+    const matchesSearch =
+      s.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.courier.name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (activeCourierFilter === "JNT") {
+      const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+      return tag.includes("J&T") || tag.includes("JNT");
+    }
+    if (activeCourierFilter === "SICEPAT") {
+      const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+      return tag.includes("SICEPAT");
+    }
+    if (activeCourierFilter === "OTHER") {
+      const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+      return !tag.includes("J&T") && !tag.includes("JNT") && !tag.includes("SICEPAT");
+    }
+    if (activeCourierFilter === "DUPLICATE") {
+      return s.isDuplicate;
+    }
+    return true;
+  });
+
   const latestScan = scans[0] || null;
 
   // Jika belum login, tampilkan layar login eksklusif Supabase
@@ -641,27 +673,57 @@ export default function App() {
             </form>
           </div>
 
-          {/* Stats Row */}
+          {/* Stats Row per Ekspedisi (Sesuai Struktur Data Asli Laporan) */}
           <div className="stats-grid">
-            <div className="stat-card">
-              <span className="stat-label">Total Scan</span>
+            <div
+              className={`stat-card clickable ${activeCourierFilter === "ALL" ? "stat-active" : ""}`}
+              onClick={() => setActiveCourierFilter("ALL")}
+              style={{ cursor: "pointer" }}
+              title="Klik untuk tampilkan Semua Data Scan"
+            >
+              <span className="stat-label">Total Semua Scan</span>
               <span className="stat-value">{totalScans}</span>
             </div>
 
-            <div className="stat-card">
-              <span className="stat-label">Resi Unik</span>
-              <span className="stat-value">{uniqueScans}</span>
+            <div
+              className={`stat-card clickable ${activeCourierFilter === "JNT" ? "stat-active" : ""}`}
+              onClick={() => setActiveCourierFilter(activeCourierFilter === "JNT" ? "ALL" : "JNT")}
+              style={{ cursor: "pointer", borderLeft: "3px solid #dc2626" }}
+              title="Klik untuk filter khusus J&T Express (JNT)"
+            >
+              <span className="stat-label" style={{ color: "#dc2626", fontWeight: 600 }}>J&T Express (JNT)</span>
+              <span className="stat-value">{jntScansCount}</span>
             </div>
 
-            <div className="stat-card">
+            <div
+              className={`stat-card clickable ${activeCourierFilter === "SICEPAT" ? "stat-active" : ""}`}
+              onClick={() => setActiveCourierFilter(activeCourierFilter === "SICEPAT" ? "ALL" : "SICEPAT")}
+              style={{ cursor: "pointer", borderLeft: "3px solid #2563eb" }}
+              title="Klik untuk filter khusus SiCepat Ekspres"
+            >
+              <span className="stat-label" style={{ color: "#2563eb", fontWeight: 600 }}>SiCepat Ekspres</span>
+              <span className="stat-value">{sicepatScansCount}</span>
+            </div>
+
+            <div
+              className={`stat-card clickable ${activeCourierFilter === "OTHER" ? "stat-active" : ""}`}
+              onClick={() => setActiveCourierFilter(activeCourierFilter === "OTHER" ? "ALL" : "OTHER")}
+              style={{ cursor: "pointer", borderLeft: "3px solid #71717a" }}
+              title="Klik untuk filter Ekspedisi Lain"
+            >
+              <span className="stat-label">Ekspedisi Lain</span>
+              <span className="stat-value">{otherScansCount}</span>
+            </div>
+
+            <div
+              className={`stat-card clickable ${activeCourierFilter === "DUPLICATE" ? "stat-active" : ""}`}
+              onClick={() => setActiveCourierFilter(activeCourierFilter === "DUPLICATE" ? "ALL" : "DUPLICATE")}
+              style={{ cursor: "pointer", borderLeft: duplicateScans > 0 ? "3px solid #e11d48" : "3px solid #d4d4d8" }}
+              title="Klik untuk filter Scan Duplikat"
+            >
               <span className="stat-label">Duplikat Terdeteksi</span>
-              <span className="stat-value">{duplicateScans}</span>
-            </div>
-
-            <div className="stat-card">
-              <span className="stat-label">Notifikasi Audio</span>
-              <span className="stat-value" style={{ fontSize: "16px", fontWeight: 600 }}>
-                {soundEnabled ? "Aktif" : "Nonaktif"}
+              <span className="stat-value" style={{ color: duplicateScans > 0 ? "#e11d48" : "inherit" }}>
+                {duplicateScans}
               </span>
             </div>
           </div>
@@ -735,9 +797,23 @@ export default function App() {
           {/* Quick History List */}
           <div className="history-card">
             <div className="history-header">
-              <h2 className="history-title">
-                Riwayat Terakhir ({filteredScans.length})
-              </h2>
+              <div>
+                <h2 className="history-title">
+                  Riwayat Terakhir ({filteredScans.length})
+                </h2>
+                {activeCourierFilter !== "ALL" && (
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "3px" }}>
+                    Filter: <strong>{activeCourierFilter === "JNT" ? "J&T Express" : activeCourierFilter === "SICEPAT" ? "SiCepat" : activeCourierFilter === "OTHER" ? "Ekspedisi Lain" : "Duplikat"}</strong> •{" "}
+                    <button
+                      type="button"
+                      onClick={() => setActiveCourierFilter("ALL")}
+                      style={{ background: "none", border: "none", color: "#4f46e5", cursor: "pointer", padding: 0, textDecoration: "underline", fontSize: "12px" }}
+                    >
+                      Reset Filter
+                    </button>
+                  </div>
+                )}
+              </div>
 
               <div className="search-wrap">
                 <Search size={15} color="var(--text-dim)" />
@@ -751,10 +827,44 @@ export default function App() {
               </div>
             </div>
 
+            {/* Quick Filter Buttons Sesuai Ekspedisi */}
+            <div className="db-filter-tabs" style={{ padding: "0 0 16px 0", borderBottom: "1px solid var(--border-main)", marginBottom: "16px" }}>
+              <button
+                className={`filter-tab ${activeCourierFilter === "ALL" ? "active" : ""}`}
+                onClick={() => setActiveCourierFilter("ALL")}
+              >
+                Semua ({totalScans})
+              </button>
+              <button
+                className={`filter-tab ${activeCourierFilter === "JNT" ? "active" : ""}`}
+                onClick={() => setActiveCourierFilter("JNT")}
+              >
+                J&T Express ({jntScansCount})
+              </button>
+              <button
+                className={`filter-tab ${activeCourierFilter === "SICEPAT" ? "active" : ""}`}
+                onClick={() => setActiveCourierFilter("SICEPAT")}
+              >
+                SiCepat ({sicepatScansCount})
+              </button>
+              <button
+                className={`filter-tab ${activeCourierFilter === "OTHER" ? "active" : ""}`}
+                onClick={() => setActiveCourierFilter("OTHER")}
+              >
+                Lainnya ({otherScansCount})
+              </button>
+              <button
+                className={`filter-tab ${activeCourierFilter === "DUPLICATE" ? "active" : ""}`}
+                onClick={() => setActiveCourierFilter("DUPLICATE")}
+              >
+                Duplikat ({duplicateScans})
+              </button>
+            </div>
+
             {filteredScans.length === 0 ? (
               <div className="empty-state">
-                <p>Belum ada data scan.</p>
-                <span>Tembak barcode menggunakan scanner USB atau input nomor resi di atas.</span>
+                <p>Belum ada data scan yang cocok.</p>
+                <span>Coba ganti filter ekspedisi atau kata kunci pencarian resi.</span>
               </div>
             ) : (
               <div className="table-wrap">
@@ -770,7 +880,7 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredScans.slice(0, 10).map((scan, idx) => (
+                    {filteredScans.slice(0, 15).map((scan, idx) => (
                       <tr key={scan.id}>
                         <td style={{ color: "var(--text-muted)" }}>{filteredScans.length - idx}</td>
                         <td style={{ color: "var(--text-secondary)", fontSize: "12px", fontFamily: "var(--font-mono)" }}>
@@ -804,11 +914,11 @@ export default function App() {
                         </td>
                         <td>
                           {scan.isDuplicate ? (
-                            <span style={{ fontSize: "11px", fontWeight: 700, color: "#18181b", background: "#f4f4f5", border: "1px solid #d4d4d8", padding: "2px 6px", borderRadius: "3px" }}>
+                            <span className="badge-status-duplikat">
                               Duplikat
                             </span>
                           ) : (
-                            <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Unik</span>
+                            <span className="badge-status-asli">Asli</span>
                           )}
                         </td>
                         <td style={{ textAlign: "right" }}>

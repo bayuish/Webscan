@@ -143,6 +143,10 @@ export default function DataTablePage({
       const tag = (item.courier?.tag || item.courier?.name || "").toUpperCase();
       return tag.includes("SICEPAT");
     }
+    if (activeFilter === "OTHER") {
+      const tag = (item.courier?.tag || item.courier?.name || "").toUpperCase();
+      return !tag.includes("J&T") && !tag.includes("JNT") && !tag.includes("SICEPAT");
+    }
     if (activeFilter === "DUPLICATE") {
       return item.isDuplicate;
     }
@@ -165,6 +169,11 @@ export default function DataTablePage({
   const sicepatTotal = dateFilteredScans.filter((s) => {
     const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
     return tag.includes("SICEPAT");
+  }).length;
+
+  const otherTotal = dateFilteredScans.filter((s) => {
+    const tag = (s.courier?.tag || s.courier?.name || "").toUpperCase();
+    return !tag.includes("J&T") && !tag.includes("JNT") && !tag.includes("SICEPAT");
   }).length;
 
   const dupTotal = dateFilteredScans.filter((s) => s.isDuplicate).length;
@@ -245,6 +254,12 @@ export default function DataTablePage({
             onClick={() => setActiveFilter("SICEPAT")}
           >
             SiCepat ({sicepatTotal})
+          </button>
+          <button
+            className={`filter-tab ${activeFilter === "OTHER" ? "active" : ""}`}
+            onClick={() => setActiveFilter("OTHER")}
+          >
+            Lainnya ({otherTotal})
           </button>
           <button
             className={`filter-tab ${activeFilter === "DUPLICATE" ? "active" : ""}`}
@@ -397,11 +412,11 @@ export default function DataTablePage({
                   </td>
                   <td>
                     {item.isDuplicate ? (
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: "#18181b", background: "#f4f4f5", border: "1px solid #d4d4d8", padding: "2px 6px", borderRadius: "3px" }}>
-                        DUPLIKAT
+                      <span className="badge-status-duplikat">
+                        Duplikat
                       </span>
                     ) : (
-                      <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>Unik</span>
+                      <span className="badge-status-asli">Asli</span>
                     )}
                   </td>
                   <td style={{ textAlign: "right" }}>

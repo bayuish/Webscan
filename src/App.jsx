@@ -17,7 +17,8 @@ import {
   LogOut,
   UserCheck,
   Camera,
-  Smartphone
+  Smartphone,
+  Sparkles
 } from "lucide-react";
 import { detectCourier, cleanTrackingCode } from "./utils/courier";
 import { playCourierSound, playDuplicateSound, unlockAudio, playSuccessBeep } from "./utils/audio";

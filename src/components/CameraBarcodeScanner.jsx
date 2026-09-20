@@ -35,6 +35,16 @@ export default function CameraBarcodeScanner({
   const lastScannedCodeRef = useRef("");
   const lastScanTimestampRef = useRef(0);
 
+  // Simpan callbacks & props dalam ref agar stabil dan tidak memicu re-render / re-start scanner
+  const onScanSuccessRef = useRef(onScanSuccess);
+  onScanSuccessRef.current = onScanSuccess;
+
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  const continuousModeRef = useRef(continuousMode);
+  continuousModeRef.current = continuousMode;
+
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
       try {
@@ -51,51 +61,64 @@ export default function CameraBarcodeScanner({
     setTorchOn(false);
   }, []);
 
-  const handleScanDecoded = useCallback(
-    (decodedText) => {
-      if (!decodedText) return;
+  const handleScanDecoded = useCallback((decodedText) => {
+    if (!decodedText) return;
 
-      const cleaned = cleanTrackingCode(decodedText);
-      if (!cleaned || cleaned.length < 5) return;
+    const cleaned = cleanTrackingCode(decodedText);
+    if (!cleaned || cleaned.length < 5) return;
 
-      const now = Date.now();
-      // Debounce: jika resi yang sama discan dalam waktu kurang dari 2.5 detik, abaikan agar tidak spam
-      if (
-        cleaned.toUpperCase() === lastScannedCodeRef.current.toUpperCase() &&
-        now - lastScanTimestampRef.current < 2500
-      ) {
-        return;
-      }
+    const now = Date.now();
+    // Debounce: jika resi yang sama discan dalam waktu kurang dari 2.5 detik, abaikan agar tidak spam
+    if (
+      cleaned.toUpperCase() === lastScannedCodeRef.current.toUpperCase() &&
+      now - lastScanTimestampRef.current < 2500
+    ) {
+      return;
+    }
 
-      lastScannedCodeRef.current = cleaned;
-      lastScanTimestampRef.current = now;
+    lastScannedCodeRef.current = cleaned;
+    lastScanTimestampRef.current = now;
 
-      const courierInfo = detectCourier(cleaned);
+    const courierInfo = detectCourier(cleaned);
+    const timeStr = new Date()
+      .toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
+      .replace(/\./g, ":");
 
+    // Perbarui scanCount dan spotlight kartu hasil scan
+    setScanCount((prev) => {
+      const nextCount = prev + 1;
       setLastScanned({
         code: cleaned,
         courier: courierInfo,
-        time: new Date().toLocaleTimeString("id-ID")
+        time: timeStr,
+        count: nextCount
       });
-      setScanCount((prev) => prev + 1);
+      return nextCount;
+    });
 
-      // Trigger haptic feedback jika HP mendukung vibration
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([60, 40, 60]);
-      }
+    // Trigger haptic feedback jika HP mendukung vibration
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([60, 40, 60]);
+    }
 
-      // Panggil callback parent (otomatis masuk database)
-      onScanSuccess(cleaned);
+    // Panggil callback parent (otomatis masuk database Supabase)
+    if (onScanSuccessRef.current) {
+      onScanSuccessRef.current(cleaned);
+    }
 
-      // Jika bukan mode continuous, tutup scanner setelah 1x scan
-      if (!continuousMode) {
-        setTimeout(() => {
-          onClose();
-        }, 800);
-      }
-    },
-    [continuousMode, onScanSuccess, onClose]
-  );
+    // Jika bukan mode continuous, tutup scanner setelah 1x scan
+    if (!continuousModeRef.current) {
+      setTimeout(() => {
+        if (onCloseRef.current) {
+          onCloseRef.current();
+        }
+      }, 800);
+    }
+  }, []);
 
   const startScanner = useCallback(async () => {
     setErrorMessage("");
@@ -176,25 +199,24 @@ export default function CameraBarcodeScanner({
   };
 
   useEffect(() => {
+    let timer;
     if (isOpen) {
       setLastScanned(null);
       setScanCount(0);
       lastScannedCodeRef.current = "";
-      // Delay sedikit agar DOM element sudah ter-mount
-      const timer = setTimeout(() => {
+      // Delay sedikit agar DOM element viewport ter-mount sempurna
+      timer = setTimeout(() => {
         startScanner();
       }, 250);
-      return () => clearTimeout(timer);
     } else {
       stopScanner();
     }
-  }, [isOpen, startScanner, stopScanner]);
 
-  useEffect(() => {
     return () => {
+      if (timer) clearTimeout(timer);
       stopScanner();
     };
-  }, [stopScanner]);
+  }, [isOpen, startScanner, stopScanner]);
 
   if (!isOpen) return null;
 
@@ -293,7 +315,7 @@ export default function CameraBarcodeScanner({
                   Pukul {lastScanned.time} WIB • Otomatis tersimpan ke Cloud
                 </div>
               </div>
-              <div className="cam-counter-badge">#{scanCount}</div>
+              <div className="cam-counter-badge">#{lastScanned.count || scanCount}</div>
             </div>
           ) : (
             <div className="camera-guide-box">

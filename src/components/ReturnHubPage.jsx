@@ -16,13 +16,15 @@ import {
   Barcode,
   Trash2,
   XCircle,
-  ExternalLink
+  ExternalLink,
+  Camera
 } from "lucide-react";
 import { playCourierSound, playDuplicateSound, playDuplicateBeep } from "../utils/audio";
 import { detectCourier, cleanTrackingCode } from "../utils/courier";
 import { exportToExcel } from "../utils/exporter";
 import CalendarRangePicker from "./CalendarRangePicker";
 import ExcelJS from "exceljs";
+import CameraBarcodeScanner from "./CameraBarcodeScanner";
 import {
   fetchReturnPackages,
   upsertReturnPackage,
@@ -121,6 +123,11 @@ function detectSheetHeader(rows) {
 export default function ReturnHubPage({ soundEnabled = true }) {
   const [returnItems, setReturnItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
+  const inputRef = useRef(null);
 
   // Ambil data retur awal dari Database Supabase (Cloud)
   useEffect(() => {
@@ -492,14 +499,12 @@ export default function ReturnHubPage({ soundEnabled = true }) {
     }
   };
 
-  // Handler Scan Resi Retur
-  const handleScanSubmit = (e) => {
-    e.preventDefault();
-    const raw = cleanTrackingCode(scanInput);
-    if (!raw) return;
-    setScanInput("");
+  // Pemrosesan nomor resi retur (Mendukung Scanner USB & Kamera HP)
+  const processReturnCode = (raw) => {
+    const clean = cleanTrackingCode(raw);
+    if (!clean) return;
 
-    const upperCode = raw.toUpperCase();
+    const upperCode = clean.toUpperCase();
 
     // Cari resi di daftar paket retur
     const index = returnItems.findIndex((item) => item.trackingId.toUpperCase() === upperCode);
@@ -582,6 +587,14 @@ export default function ReturnHubPage({ soundEnabled = true }) {
     }
 
     showToast(`✓ Paket Retur ${item.trackingId} (${item.provider}) Berhasil Diterima!`, "success");
+  };
+
+  // Handler Scan Resi Retur via Form / USB
+  const handleScanSubmit = (e) => {
+    e.preventDefault();
+    if (!scanInput) return;
+    processReturnCode(scanInput);
+    setScanInput("");
   };
 
   // Toggle manual status sampai / belum
@@ -1077,14 +1090,33 @@ export default function ReturnHubPage({ soundEnabled = true }) {
         <>
           {/* Scanner Input Card Khusus Retur */}
           <div className="return-scanner-card">
+            {/* Tombol Utama: Scan Kamera HP */}
+            <button
+              type="button"
+              className="btn-camera-scan-main"
+              onClick={() => setIsCameraScannerOpen(true)}
+            >
+              <div className="btn-camera-scan-icon">
+                <Camera size={22} />
+              </div>
+              <div className="btn-camera-scan-text">
+                <span className="btn-camera-scan-title">
+                  📷 Scan Retur dengan Kamera HP
+                </span>
+                <span className="btn-camera-scan-sub">
+                  Arahkan kamera ke Barcode 1D atau QR Code paket retur yang tiba
+                </span>
+              </div>
+            </button>
+
             <div className="return-scanner-header">
               <div className="return-scanner-title">
                 <Barcode size={18} />
-                <span>Pemindai Resi Paket Retur Masuk:</span>
+                <span>Atau gunakan scanner USB / ketik resi:</span>
               </div>
               <span className="scanner-badge-status">
                 <span className="status-dot"></span>
-                Scanner Standby (Otomatis Terbaca)
+                Scanner Standby
               </span>
             </div>
 
@@ -1517,6 +1549,14 @@ export default function ReturnHubPage({ soundEnabled = true }) {
           <span>{toast.message}</span>
         </div>
       )}
+      {/* Modal Pemindai Kamera Barcode & QR Code HP untuk Retur */}
+      <CameraBarcodeScanner
+        isOpen={isCameraScannerOpen}
+        onClose={() => setIsCameraScannerOpen(false)}
+        onScanSuccess={(code) => processReturnCode(code)}
+        title="Pemindai Kamera HP - Retur Masuk"
+        subtitle="Arahkan kamera ke Barcode Garis atau QR Code resi paket retur"
+      />
     </div>
   );
 }

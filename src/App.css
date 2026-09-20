@@ -3056,49 +3056,428 @@ input[type=number] {
 }
 
 /* ==========================================================
+   CAMERA BARCODE SCANNER (MODAL & VIEWPORT)
+   ========================================================== */
+.btn-camera-scan-main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, #18181b 0%, #27272a 100%);
+  color: #ffffff;
+  border: 1px solid #3f3f46;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(24, 24, 27, 0.12);
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.btn-camera-scan-main:hover {
+  background: linear-gradient(135deg, #27272a 0%, #3f3f46 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(24, 24, 27, 0.18);
+}
+
+.btn-camera-scan-main:active {
+  transform: translateY(0);
+}
+
+.btn-camera-scan-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+  flex-shrink: 0;
+}
+
+.btn-camera-scan-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.btn-camera-scan-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-camera-scan-sub {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+/* Camera Modal Overlay */
+.camera-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  animation: fadeIn 0.2s ease;
+}
+
+.camera-modal-content {
+  width: 100%;
+  max-width: 480px;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  max-height: 94vh;
+}
+
+.camera-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #27272a;
+  background: #18181b;
+}
+
+.camera-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.camera-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #27272a;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.camera-modal-sub {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin: 2px 0 0 0;
+}
+
+.camera-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #e4e4e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.camera-close-btn:hover {
+  background: #3f3f46;
+  color: #ffffff;
+}
+
+/* Viewport Area */
+.camera-viewport-container {
+  position: relative;
+  width: 100%;
+  background: #09090b;
+  min-height: 280px;
+  max-height: 52vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+#camera-scanner-viewport {
+  width: 100% !important;
+  border: none !important;
+}
+
+#camera-scanner-viewport video {
+  width: 100% !important;
+  max-height: 52vh !important;
+  object-fit: cover !important;
+  border-radius: 0;
+}
+
+/* Laser Scan Animation */
+.scanner-laser-box {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scanner-laser-line {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  height: 2px;
+  background: #22c55e;
+  box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+  animation: laserScan 2s ease-in-out infinite alternate;
+}
+
+@keyframes laserScan {
+  0% {
+    top: 14%;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 86%;
+    opacity: 0.6;
+  }
+}
+
+.scanner-target-corners {
+  width: 86%;
+  height: 60%;
+  border: 2px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+}
+
+.camera-viewport-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  z-index: 20;
+}
+
+.cam-ctrl-btn {
+  background: rgba(24, 24, 27, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f4f4f5;
+  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cam-ctrl-btn:hover {
+  background: rgba(39, 39, 42, 0.9);
+}
+
+.cam-ctrl-btn.active {
+  background: #3b82f6;
+  border-color: #60a5fa;
+  color: #ffffff;
+}
+
+/* Footer status & results */
+.camera-footer-status {
+  padding: 14px 18px;
+  background: #18181b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid #27272a;
+}
+
+.camera-guide-box {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 11.5px;
+  color: #d4d4d8;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.camera-last-scan-card {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: fadeIn 0.2s ease;
+}
+
+.cam-scan-check {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(22, 163, 74, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cam-scan-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.cam-scan-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cam-scan-code {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cam-courier-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: #3f3f46;
+  color: #f4f4f5;
+  text-transform: uppercase;
+}
+
+.cam-scan-meta {
+  font-size: 10.5px;
+  color: #a1a1aa;
+  margin-top: 2px;
+}
+
+.cam-counter-badge {
+  font-size: 12px;
+  font-weight: 800;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.camera-action-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+.camera-batch-counter {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.camera-batch-counter strong {
+  color: #ffffff;
+}
+
+.camera-error-banner {
+  background: #450a0a;
+  border: 1px solid #7f1d1d;
+  color: #fecaca;
+  padding: 12px 16px;
+  margin: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.camera-error-banner p {
+  margin: 4px 0 0 0;
+  color: #fca5a5;
+  font-size: 11px;
+}
+
+/* ==========================================================
    RESPONSIVE: TABLET (max-width: 768px)
    ========================================================== */
 @media (max-width: 768px) {
   .app-container {
-    padding: 16px 12px 60px;
+    padding: 14px 12px 60px;
   }
 
-  /* Header: Stack vertically */
+  /* App Header: Mobile App-Bar Layout */
   .app-header {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
   }
 
-  .header-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .user-profile-header {
+  .brand-section {
     width: 100%;
     justify-content: space-between;
   }
 
-  .brand-title {
-    font-size: 18px;
+  .header-actions {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
-  .brand-subtitle {
-    font-size: 12px;
+  .user-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
-  /* Navigation: Scroll horizontal */
+  /* Navigation: Modern Pill Tab Bar */
   .main-nav {
+    display: flex;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    gap: 6px;
     margin-bottom: 16px;
-    padding-bottom: 10px;
-    gap: 4px;
+    padding-bottom: 6px;
   }
 
   .main-nav::-webkit-scrollbar {
@@ -3108,19 +3487,24 @@ input[type=number] {
   .nav-tab {
     white-space: nowrap;
     flex-shrink: 0;
-    padding: 7px 12px;
+    padding: 8px 14px;
+    border-radius: var(--radius-full);
     font-size: 12px;
+    font-weight: 600;
   }
 
-  /* Stats Grid */
+  /* Stats Grid: ALWAYS 2 COLUMNS ON MOBILE */
   .stats-grid,
-  .return-stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+  .return-stats-grid,
+  .stock-out-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 16px;
   }
 
   .stat-card {
     padding: 12px 14px;
+    border-radius: 12px;
   }
 
   .stat-value {
@@ -3131,218 +3515,100 @@ input[type=number] {
   .scanner-card {
     padding: 16px;
     margin-bottom: 16px;
+    border-radius: 14px;
   }
 
   .scanner-input-group {
-    flex-direction: column;
+    display: flex;
+    flex-direction: row;
     gap: 8px;
   }
 
-  .scanner-input-group .btn-primary,
-  .scanner-input-group .test-btn {
-    width: 100%;
-    justify-content: center;
+  .scanner-input {
+    flex: 1;
+    min-width: 0;
   }
 
-  /* Spotlight Card */
-  .spotlight-card {
-    flex-direction: column;
-    padding: 16px;
-    gap: 12px;
-  }
-
-  /* Return / Stok Page Header */
+  /* Return & Stok Headers */
   .return-header {
     flex-direction: column;
-    gap: 12px;
-  }
-
-  .return-header-left {
-    max-width: 100%;
-  }
-
-  .return-title {
-    font-size: 16px;
+    gap: 10px;
+    padding-bottom: 12px;
   }
 
   .return-header-actions {
     width: 100%;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .return-header-actions .btn-secondary {
     flex: 1;
+    min-width: 140px;
     justify-content: center;
     font-size: 12px;
-    padding: 7px 10px;
+    padding: 8px 10px;
   }
 
-  /* Scanner Card (Return / Stok Keluar forms) */
-  .return-scanner-card {
-    padding: 14px 16px;
+  /* Dropzone */
+  .return-upload-dropzone {
+    padding: 24px 16px;
   }
 
-  .return-scanner-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
-  /* Table Cards */
-  .return-table-card {
-    border-radius: 8px;
-  }
-
-  .table-controls-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px 14px;
-    gap: 10px;
-  }
-
-  .table-controls-bar .search-wrap {
-    width: 100% !important;
-  }
-
-  /* Date Range Toolbar */
-  .date-range-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px 12px;
-  }
-
-  .date-range-inputs-wrap {
-    width: 100%;
-  }
-
-  .date-preset-group {
-    width: 100%;
-  }
-
-  .btn-date-preset {
-    flex: 1;
-    justify-content: center;
-    font-size: 11px;
-    padding: 5px 8px;
-  }
-
-  .date-filter-banner {
-    margin: 0 14px 12px 14px !important;
-    font-size: 11px;
-  }
-
-  /* Table scroll */
+  /* Table Container */
   .table-wrap,
   .return-table-card .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
 
-  .scan-table {
-    min-width: 700px;
-  }
-
-  .scan-table th,
-  .scan-table td {
-    padding: 10px 12px;
-    font-size: 12px;
-  }
-
-  /* Upload Dropzone */
-  .return-upload-dropzone {
-    padding: 28px 16px;
-  }
-
-  /* DB Page */
-  .db-page-card {
-    padding: 16px;
-  }
-
-  .db-header {
+  .table-controls-bar {
     flex-direction: column;
-    gap: 12px;
+    align-items: stretch;
+    gap: 10px;
+    padding: 12px 14px;
   }
 
-  /* Stock Form */
-  .stock-form-card {
-    padding: 16px;
+  .table-controls-bar .search-wrap {
+    width: 100% !important;
   }
 
   .form-row-2col {
     grid-template-columns: 1fr;
   }
-
-  /* Image Zoom Modal */
-  .image-zoom-card {
-    max-width: 95vw;
-    margin: 10px;
-  }
-
-  .image-zoom-body {
-    min-height: 200px;
-  }
-
-  .zoomed-img {
-    max-height: 55vh;
-  }
-
-  /* Login Page */
-  .login-card-container {
-    padding: 28px 20px;
-    max-width: 100%;
-  }
-
-  /* Calendar Popup */
-  .range-picker-dropdown {
-    left: 0 !important;
-    right: auto !important;
-    min-width: 280px;
-  }
 }
 
 /* ==========================================================
-   RESPONSIVE: PHONE SMALL (max-width: 480px)
+   RESPONSIVE: PHONE (max-width: 480px)
    ========================================================== */
 @media (max-width: 480px) {
   .app-container {
-    padding: 12px 8px 50px;
+    padding: 10px 10px 60px;
   }
 
+  /* Header Top Compact */
   .app-header {
+    gap: 8px;
+    padding-bottom: 10px;
     margin-bottom: 14px;
-    padding-bottom: 12px;
-  }
-
-  .brand-section {
-    gap: 10px;
   }
 
   .logo-box {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
   }
 
   .brand-title {
-    font-size: 16px;
-    gap: 6px;
-  }
-
-  .status-pill {
-    font-size: 10px;
-    padding: 2px 7px;
+    font-size: 16.5px;
   }
 
   .brand-subtitle {
     font-size: 11px;
   }
 
-  .header-actions {
-    gap: 6px;
-  }
-
   .user-profile-info {
     padding: 4px 8px;
-    gap: 5px;
   }
 
   .user-profile-name {
@@ -3350,12 +3616,12 @@ input[type=number] {
   }
 
   .user-role-badge {
-    font-size: 9px;
-    padding: 1px 5px;
+    font-size: 9.5px;
+    padding: 2px 6px;
   }
 
   .btn-logout {
-    padding: 4px 8px;
+    padding: 5px 8px;
     font-size: 11px;
   }
 
@@ -3363,248 +3629,123 @@ input[type=number] {
     display: none;
   }
 
-  .btn-secondary {
-    font-size: 11.5px;
-    padding: 6px 10px;
-  }
-
-  .btn-primary {
-    font-size: 12px;
-    padding: 7px 12px;
-  }
-
-  /* Nav Tabs */
+  /* Navigation Pills */
   .main-nav {
-    gap: 3px;
+    gap: 5px;
     margin-bottom: 12px;
   }
 
   .nav-tab {
-    padding: 6px 10px;
-    font-size: 11px;
+    padding: 6px 11px;
+    font-size: 11.5px;
     gap: 5px;
   }
 
   .nav-badge {
     font-size: 10px;
-    padding: 0px 5px;
+    padding: 0 5px;
   }
 
-  /* Stats Grid: 1 column on very narrow */
+  /* Stats Grid: Clean Balanced 2x2 Grid */
   .stats-grid,
-  .return-stats-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .return-stats-grid,
+  .stock-out-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 14px;
   }
 
   .stat-card {
     padding: 10px 12px;
-  }
-
-  .stat-value {
-    font-size: 20px;
+    border-radius: 10px;
   }
 
   .stat-label {
     font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+    font-weight: 800;
   }
 
   .stat-meta {
-    font-size: 10px;
+    font-size: 9.5px;
   }
 
   /* Scanner Card */
   .scanner-card {
-    padding: 12px;
+    padding: 12px 14px;
     margin-bottom: 12px;
+  }
+
+  .scanner-label {
+    font-size: 12px;
+  }
+
+  .scanner-input-group {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
   }
 
   .scanner-input {
-    font-size: 14px;
+    font-size: 13.5px;
     padding: 8px 10px;
   }
 
-  /* Return / Stok Header */
-  .return-title {
-    font-size: 15px;
-  }
-
-  .return-subtag {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-
-  .return-subtitle {
+  .scanner-input-group .btn-primary {
+    padding: 8px 14px;
     font-size: 12px;
+    flex-shrink: 0;
   }
 
-  .return-header-actions {
-    flex-direction: column;
-  }
-
-  .return-header-actions .btn-secondary {
-    width: 100%;
-  }
-
-  /* Form */
-  .return-scanner-card {
-    padding: 12px;
-  }
-
-  .form-input,
-  .form-textarea {
-    font-size: 14px;
-    padding: 9px 10px;
-  }
-
-  .form-label {
-    font-size: 11px;
-  }
-
-  /* Table */
-  .table-controls-bar {
-    padding: 10px 12px;
-  }
-
-  .scan-table th,
-  .scan-table td {
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-
-  /* Upload Dropzone */
-  .return-upload-dropzone {
-    padding: 20px 12px;
-  }
-
-  .upload-dropzone-inner {
-    gap: 8px;
-  }
-
-  /* Spotlight / Last Scan */
-  .spotlight-card {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .spotlight-resi {
-    font-size: 14px;
-  }
-
-  /* DB Page */
-  .db-page-card {
-    padding: 12px;
-  }
-
-  .db-title {
-    font-size: 15px;
-  }
-
-  /* Stock Form */
-  .stock-form-card {
-    padding: 12px 14px;
-  }
-
-  /* Search Wrap */
-  .search-wrap {
-    width: 100% !important;
-  }
-
-  /* Date Range */
-  .date-range-toolbar {
-    padding: 8px 10px;
-  }
-
-  .date-input-block {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .date-input-block input[type="date"] {
-    width: 100%;
-    min-width: 0;
-    font-size: 12px;
-  }
-
-  /* Progress Card */
-  .return-progress-card {
+  /* Camera Scan Button on Mobile */
+  .btn-camera-scan-main {
     padding: 10px 14px;
-  }
-
-  /* Image Zoom */
-  .image-zoom-overlay {
-    padding: 10px;
-  }
-
-  .image-zoom-card {
-    max-width: 100%;
-  }
-
-  .image-zoom-header {
-    padding: 10px 14px;
-  }
-
-  .image-zoom-title {
-    font-size: 12px;
-  }
-
-  .zoomed-img {
-    max-height: 50vh;
-  }
-
-  /* Login */
-  .login-screen-overlay {
-    padding: 12px;
-  }
-
-  .login-card-container {
-    padding: 24px 16px;
-    border-radius: 12px;
-  }
-
-  .login-brand-title {
-    font-size: 18px;
-  }
-
-  .login-brand-icon {
-    width: 44px;
-    height: 44px;
+    gap: 10px;
     border-radius: 10px;
   }
 
-  .login-submit-btn {
+  .btn-camera-scan-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-camera-scan-title {
     font-size: 13px;
-    padding: 10px 16px;
   }
 
-  /* Toast */
+  .btn-camera-scan-sub {
+    font-size: 10px;
+  }
+
+  /* Dropzone on Mobile */
+  .return-upload-dropzone {
+    padding: 18px 12px;
+  }
+
+  .upload-dropzone-inner {
+    gap: 6px;
+  }
+
+  .dropzone-title {
+    font-size: 14px;
+  }
+
+  /* Table cells compact */
+  .scan-table th,
+  .scan-table td {
+    padding: 8px 10px;
+    font-size: 11.5px;
+  }
+
+  /* Toast floating */
   .toast-msg {
-    left: 12px;
-    right: 12px;
-    bottom: 16px;
-    max-width: 100%;
-    font-size: 12px;
-  }
-
-  /* Calendar dropdown */
-  .range-picker-dropdown {
-    left: -8px !important;
-    right: auto !important;
-    min-width: 260px;
-    max-width: calc(100vw - 24px);
-  }
-
-  .calendar-grid {
-    gap: 2px;
-  }
-
-  .calendar-day-cell {
-    width: 30px;
-    height: 30px;
-    font-size: 11px;
-  }
-
-  .calendar-header-label {
+    left: 10px;
+    right: 10px;
+    bottom: 14px;
     font-size: 12px;
   }
 }

@@ -15,7 +15,9 @@ import {
   PackagePlus,
   TrendingDown,
   LogOut,
-  UserCheck
+  UserCheck,
+  Camera,
+  Smartphone
 } from "lucide-react";
 import { detectCourier, cleanTrackingCode } from "./utils/courier";
 import { playCourierSound, playDuplicateSound } from "./utils/audio";
@@ -23,6 +25,7 @@ import { exportToExcel } from "./utils/exporter";
 import PieSummary from "./components/PieSummary";
 import DataTablePage from "./components/DataTablePage";
 import ReturnHubPage from "./components/ReturnHubPage";
+import CameraBarcodeScanner from "./components/CameraBarcodeScanner";
 import StockInPage from "./components/StockInPage";
 import StockOutPage from "./components/StockOutPage";
 import LoginPage from "./components/LoginPage";
@@ -80,6 +83,7 @@ export default function App() {
   const [stockInItems, setStockInItems] = useState([]);
   const [stockOutItems, setStockOutItems] = useState([]);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
+  const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
 
   // Sync awal dari Database Supabase (Cloud)
   const loadDatabaseFromSupabase = async () => {
@@ -595,10 +599,29 @@ export default function App() {
         <>
           {/* Scanner Input Card */}
           <div className="scanner-card">
+            {/* Tombol Utama: Scan Kamera HP Simultan */}
+            <button
+              type="button"
+              className="btn-camera-scan-main"
+              onClick={() => setIsCameraScannerOpen(true)}
+            >
+              <div className="btn-camera-scan-icon">
+                <Camera size={22} />
+              </div>
+              <div className="btn-camera-scan-text">
+                <span className="btn-camera-scan-title">
+                  📷 Buka Scanner Kamera HP
+                </span>
+                <span className="btn-camera-scan-sub">
+                  Membaca Barcode 1D & QR Code J&T / SiCepat langsung ke Database
+                </span>
+              </div>
+            </button>
+
             <div className="scanner-card-header">
               <div className="scanner-label">
                 <Barcode size={16} />
-                <span>Arahkan scanner USB atau ketik nomor resi di bawah:</span>
+                <span>Atau gunakan scanner USB / ketik nomor resi:</span>
               </div>
             </div>
 
@@ -609,7 +632,7 @@ export default function App() {
                 className="scanner-input"
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Menunggu input scanner USB... (Otomatis terbaca)"
+                placeholder="Scanner USB / ketik resi..."
                 autoFocus
               />
               <button type="submit" className="btn-primary">
@@ -853,6 +876,15 @@ export default function App() {
           currentUser={currentUser}
         />
       )}
+
+      {/* Modal Pemindai Kamera Barcode & QR Code HP */}
+      <CameraBarcodeScanner
+        isOpen={isCameraScannerOpen}
+        onClose={() => setIsCameraScannerOpen(false)}
+        onScanSuccess={(code) => processScan(code)}
+        title="Pemindai Kamera HP - Live"
+        subtitle="Arahkan kamera HP ke Barcode Garis atau QR Code resi paket"
+      />
 
       {/* Floating Toast Notification */}
       {toast && (

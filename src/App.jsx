@@ -587,6 +587,15 @@ export default function App() {
             </button>
 
             <button
+              className={`nav-tab ${activeTab === "DATABASE" ? "active" : ""}`}
+              onClick={() => navigateToTab("DATABASE")}
+            >
+              <Database size={15} />
+              <span>Tabel Data (JSON)</span>
+              <span className="nav-badge">{scans.length}</span>
+            </button>
+
+            <button
               className={`nav-tab ${activeTab === "RETURNS" ? "active" : ""}`}
               onClick={() => navigateToTab("RETURNS")}
             >
@@ -613,17 +622,6 @@ export default function App() {
           <span>Stok Keluar</span>
           <span className="nav-badge">{stockOutItems.length}</span>
         </button>
-
-        {currentUser.role === "OWNER" && (
-          <button
-            className={`nav-tab ${activeTab === "DATABASE" ? "active" : ""}`}
-            onClick={() => navigateToTab("DATABASE")}
-          >
-            <Database size={15} />
-            <span>Tabel Data (JSON)</span>
-            <span className="nav-badge">{scans.length}</span>
-          </button>
-        )}
       </nav>
 
       {/* PAGE 1: SCANNER DASHBOARD */}

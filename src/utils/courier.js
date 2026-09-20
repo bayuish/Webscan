@@ -12,37 +12,29 @@ export function cleanTrackingCode(rawCode) {
   let code = String(rawCode).trim();
   const upper = code.toUpperCase();
 
-  // 1. Jika sudah langsung diawali dengan "JY" atau "002", kode sudah bersih
-  if (upper.startsWith("JY") || upper.startsWith("002")) {
+  // 1. Jika sudah langsung diawali dengan "JY" atau resi 12 digit 00/01 SiCepat, kode sudah bersih
+  if (
+    upper.startsWith("JY") ||
+    ((upper.startsWith("00") || upper.startsWith("01")) && upper.length === 12 && /^\d+$/.test(upper))
+  ) {
     return code;
   }
 
-  // 2. Deteksi posisi "JY" atau "002" jika terhalang noise/prefix di depannya
+  // 2. Jika ada noise di depan awalan JY (seperti avavavJY..., vJY...)
   const idxJY = upper.indexOf("JY");
-  const idx002 = upper.indexOf("002");
-
-  let targetIndex = -1;
-  if (idxJY !== -1 && idx002 !== -1) {
-    targetIndex = Math.min(idxJY, idx002);
-  } else if (idxJY !== -1) {
-    targetIndex = idxJY;
-  } else if (idx002 !== -1) {
-    targetIndex = idx002;
+  if (idxJY > 0) {
+    return code.slice(idxJY).trim();
   }
 
-  // Jika ditemukan posisi JY atau 002 setelah karakter noise di depannya
-  if (targetIndex > 0) {
-    // Pastikan bukan bagian dari kurir resmi lain seperti SPX yang kebetulan mengandung karakter tersebut
-    const validOtherPrefixes = ["SPX", "JP", "JX", "EZ", "SC", "TKP", "NLID", "IDE", "LP", "POS", "1000"];
-    const isOtherCourier = validOtherPrefixes.some((p) => upper.startsWith(p));
-    if (!isOtherCourier) {
-      return code.slice(targetIndex).trim();
-    }
+  // 3. Jika ada noise di depan resi 12 digit SiCepat (seperti AV00..., AVAV00...)
+  const matchSiCepat = upper.match(/00\d{10}/);
+  if (matchSiCepat && matchSiCepat.index > 0) {
+    return code.slice(matchSiCepat.index).trim();
   }
 
-  // 3. Fallback: hapus pengulangan 'AV' jika ada pola lain
+  // 4. Fallback: hapus pengulangan 'AV' jika ada pola lain
   const cleanedAV = code.replace(/^(AV)+/i, "");
-  if (cleanedAV.length >= 2) {
+  if (cleanedAV.length >= 5) {
     return cleanedAV.trim();
   }
 

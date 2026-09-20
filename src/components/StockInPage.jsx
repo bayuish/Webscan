@@ -14,36 +14,24 @@ import {
 } from "lucide-react";
 import { exportStockInPDF } from "../utils/pdfExporter";
 import CalendarRangePicker from "./CalendarRangePicker";
+import { formatWIBDateTime } from "../utils/supabaseDb";
 
-function formatWIBDate(isoOrDateStr) {
-  if (!isoOrDateStr) return "-";
-  const d = new Date(isoOrDateStr);
-  if (isNaN(d.getTime())) return isoOrDateStr;
-
-  const time = d.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  }).replace(/\./g, ":") + " WIB";
-
-  const date = d.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-
-  return `${date}, ${time}`;
-}
+const formatWIBDate = formatWIBDateTime;
 
 function getCurrentDateTimeLocal() {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
+  const parts = formatter.formatToParts(now);
+  const getPart = (type) => parts.find((p) => p.type === type)?.value;
+  return `${getPart("year")}-${getPart("month")}-${getPart("day")}T${getPart("hour")}:${getPart("minute")}`;
 }
 
 function formatDisplayDate(ymdStr) {

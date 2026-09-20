@@ -1,13 +1,29 @@
 import { supabase } from "./supabaseClient.js";
 import { detectCourier } from "./courier.js";
 
+export function parseDateSafe(val) {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === "string") {
+    let s = val.trim();
+    // Jika format ISO dari database tanpa indikator zona waktu Z / offset, tambahkan Z agar dianggap UTC
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(s) && !s.endsWith("Z") && !/[+-]\d{2}(:\d{2})?$/.test(s)) {
+      s += "Z";
+    }
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) return d;
+  }
+  return new Date(val);
+}
+
 export function formatWIBDateTime(dateObj = new Date()) {
   if (!dateObj) return "-";
-  const d = typeof dateObj === "string" ? new Date(dateObj) : dateObj;
+  const d = parseDateSafe(dateObj);
   if (isNaN(d.getTime())) return String(dateObj);
 
   const time = d
     .toLocaleTimeString("id-ID", {
+      timeZone: "Asia/Jakarta",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -16,6 +32,7 @@ export function formatWIBDateTime(dateObj = new Date()) {
     .replace(/\./g, ":") + " WIB";
 
   const date = d.toLocaleDateString("id-ID", {
+    timeZone: "Asia/Jakarta",
     day: "2-digit",
     month: "2-digit",
     year: "numeric"
@@ -26,9 +43,9 @@ export function formatWIBDateTime(dateObj = new Date()) {
 
 export function formatWIBDateOnly(dateObj = new Date()) {
   if (!dateObj) return "";
-  const d = typeof dateObj === "string" ? new Date(dateObj) : dateObj;
+  const d = parseDateSafe(dateObj);
   if (isNaN(d.getTime())) return "";
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 }
 
 // ============================================================================
@@ -182,7 +199,7 @@ export async function fetchStockInList() {
       name: row.character_name || "",
       qty: row.qty_lusin,
       date: row.entry_date,
-      formattedDate: formatWIBDateTime(new Date(row.entry_date)),
+      formattedDate: formatWIBDateTime(row.entry_date),
       createdAt: row.created_at,
       updatedAt: row.updated_at
     }));
@@ -221,7 +238,7 @@ export async function insertStockInItem(item) {
       name: data.character_name || "",
       qty: data.qty_lusin,
       date: data.entry_date,
-      formattedDate: formatWIBDateTime(new Date(data.entry_date)),
+      formattedDate: formatWIBDateTime(data.entry_date),
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -261,7 +278,7 @@ export async function updateStockInItem(item) {
       name: data.character_name || "",
       qty: data.qty_lusin,
       date: data.entry_date,
-      formattedDate: formatWIBDateTime(new Date(data.entry_date)),
+      formattedDate: formatWIBDateTime(data.entry_date),
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
@@ -318,7 +335,7 @@ export async function fetchStockOutList() {
       name: row.character_name || "",
       qty: row.qty_lusin,
       date: row.exit_date_locked,
-      formattedDate: formatWIBDateTime(new Date(row.exit_date_locked)),
+      formattedDate: formatWIBDateTime(row.exit_date_locked),
       image: row.photo_proof_url,
       notes: row.notes || "-",
       createdAt: row.created_at
@@ -362,7 +379,7 @@ export async function insertStockOutItem(item) {
       name: data.character_name || "",
       qty: data.qty_lusin,
       date: data.exit_date_locked,
-      formattedDate: formatWIBDateTime(new Date(data.exit_date_locked)),
+      formattedDate: formatWIBDateTime(data.exit_date_locked),
       image: data.photo_proof_url,
       notes: data.notes || "-",
       createdAt: data.created_at

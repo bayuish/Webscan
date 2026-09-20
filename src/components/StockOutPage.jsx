@@ -20,23 +20,7 @@ import { compressImage } from "../utils/imageCompressor";
 import { exportStockOutPDF } from "../utils/pdfExporter";
 import { uploadStockOutProof } from "../utils/supabaseClient";
 import CalendarRangePicker from "./CalendarRangePicker";
-
-function formatWIBDateTime(dateObj = new Date()) {
-  const time = dateObj.toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false
-  }).replace(/\./g, ":") + " WIB";
-
-  const date = dateObj.toLocaleDateString("id-ID", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-
-  return `${date}, ${time}`;
-}
+import { formatWIBDateTime } from "../utils/supabaseDb";
 
 function formatDisplayDate(ymdStr) {
   if (!ymdStr) return "";

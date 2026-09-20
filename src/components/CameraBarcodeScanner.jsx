@@ -14,6 +14,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { cleanTrackingCode, detectCourier } from "../utils/courier.js";
+import { unlockAudio } from "../utils/audio.js";
 
 export default function CameraBarcodeScanner({
   isOpen,
@@ -122,6 +123,7 @@ export default function CameraBarcodeScanner({
 
   const startScanner = useCallback(async () => {
     setErrorMessage("");
+    unlockAudio();
     try {
       if (scannerRef.current) {
         await stopScanner();

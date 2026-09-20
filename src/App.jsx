@@ -20,7 +20,7 @@ import {
   Smartphone
 } from "lucide-react";
 import { detectCourier, cleanTrackingCode } from "./utils/courier";
-import { playCourierSound, playDuplicateSound } from "./utils/audio";
+import { playCourierSound, playDuplicateSound, unlockAudio } from "./utils/audio";
 import { exportToExcel } from "./utils/exporter";
 import PieSummary from "./components/PieSummary";
 import DataTablePage from "./components/DataTablePage";
@@ -633,7 +633,10 @@ export default function App() {
             <button
               type="button"
               className="btn-camera-scan-main"
-              onClick={() => setIsCameraScannerOpen(true)}
+              onClick={() => {
+                unlockAudio();
+                setIsCameraScannerOpen(true);
+              }}
             >
               <div className="btn-camera-scan-icon">
                 <Camera size={22} />

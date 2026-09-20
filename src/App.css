@@ -3340,13 +3340,234 @@ input[type=number] {
   background: rgba(39, 39, 42, 0.9);
 }
 
-.cam-ctrl-btn.active {
-  background: #3b82f6;
-  border-color: #60a5fa;
+/* Animasi Laser saat duplikat */
+.scanner-laser-box.is-dup-laser .scanner-laser-line {
+  background: linear-gradient(90deg, transparent, #ef4444, transparent) !important;
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.9) !important;
+}
+
+.scanner-laser-box.is-dup-laser .scanner-target-corners {
+  border-color: rgba(239, 68, 68, 0.8) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4) inset !important;
+}
+
+/* Pop-up Peringatan Resi Duplikat di Layar Kamera HP */
+.cam-duplicate-popup {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);
+  color: #ffffff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(220, 38, 38, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 60;
+  border: 2px solid #fca5a5;
+  animation: slideDownBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideDownBounce {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cam-duplicate-icon {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.2);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cam-duplicate-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.cam-duplicate-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
   color: #ffffff;
 }
 
-/* Footer status & results */
+.cam-duplicate-msg {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #fef2f2;
+}
+
+.cam-duplicate-msg strong {
+  color: #ffffff;
+  font-family: var(--font-mono);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.cam-duplicate-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Kartu Scan Terakhir State Duplikat */
+.camera-last-scan-card.is-duplicate-card {
+  background: #2b1113 !important;
+  border: 1.5px solid #ef4444 !important;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25) !important;
+}
+
+.cam-scan-check.check-dup {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border: 1px solid #f87171 !important;
+}
+
+.cam-badge-dup {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+  animation: pulseGlow 1.5s infinite;
+}
+
+.cam-badge-asli {
+  background: #14532d !important;
+  color: #86efac !important;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.cam-counter-badge.badge-count-dup {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* Modal Pop-up Interaksi Aktivasi Suara HP */
+.audio-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3500;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+.audio-prompt-card {
+  width: 100%;
+  max-width: 400px;
+  background: #18181b;
+  border: 1px solid #3f3f46;
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  animation: slideDownBounce 0.3s ease;
+}
+
+.audio-prompt-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+}
+
+.audio-prompt-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.audio-prompt-desc {
+  font-size: 13px;
+  color: #a1a1aa;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.audio-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-audio-start {
+  width: 100%;
+  padding: 14px 20px;
+  background: #4f46e5;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
+}
+
+.btn-audio-start:hover {
+  background: #4338ca;
+  transform: translateY(-1px);
+}
+
+.btn-audio-cancel {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: #71717a;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-audio-cancel:hover {
+  color: #e4e4e7;
+}
 .camera-footer-status {
   padding: 14px 18px;
   background: #18181b;

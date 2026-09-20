@@ -14,12 +14,13 @@ import {
   Sparkles
 } from "lucide-react";
 import { cleanTrackingCode, detectCourier } from "../utils/courier.js";
-import { unlockAudio } from "../utils/audio.js";
+import { unlockAudio, playSuccessBeep } from "../utils/audio.js";
 
 export default function CameraBarcodeScanner({
   isOpen,
   onClose,
   onScanSuccess,
+  existingScans = [],
   title = "Pemindai Kamera HP",
   subtitle = "Arahkan kamera ke Barcode Garis atau QR Code resi paket"
 }) {
@@ -27,6 +28,7 @@ export default function CameraBarcodeScanner({
   const [hasTorch, setHasTorch] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [lastScanned, setLastScanned] = useState(null);
+  const [duplicateAlert, setDuplicateAlert] = useState(null);
   const [scanCount, setScanCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [continuousMode, setContinuousMode] = useState(true);
@@ -35,6 +37,7 @@ export default function CameraBarcodeScanner({
   const readerElementId = "camera-scanner-viewport";
   const lastScannedCodeRef = useRef("");
   const lastScanTimestampRef = useRef(0);
+  const dupTimeoutRef = useRef(null);
 
   // Simpan callbacks & props dalam ref agar stabil dan tidak memicu re-render / re-start scanner
   const onScanSuccessRef = useRef(onScanSuccess);
@@ -45,6 +48,9 @@ export default function CameraBarcodeScanner({
 
   const continuousModeRef = useRef(continuousMode);
   continuousModeRef.current = continuousMode;
+
+  const existingScansRef = useRef(existingScans);
+  existingScansRef.current = existingScans;
 
   const stopScanner = useCallback(async () => {
     if (scannerRef.current) {
@@ -89,6 +95,37 @@ export default function CameraBarcodeScanner({
       })
       .replace(/\./g, ":");
 
+    // Cek apakah resi ini sudah ada di database (Duplikat)
+    const isDuplicate = Boolean(
+      existingScansRef.current?.some(
+        (s) => (s.code || "").trim().toLowerCase() === cleaned.toLowerCase()
+      )
+    );
+
+    if (isDuplicate) {
+      setDuplicateAlert({
+        code: cleaned,
+        courier: courierInfo,
+        time: timeStr
+      });
+
+      if (dupTimeoutRef.current) clearTimeout(dupTimeoutRef.current);
+      dupTimeoutRef.current = setTimeout(() => {
+        setDuplicateAlert(null);
+      }, 4500);
+
+      // Trigger getaran urgent khusus duplikat di HP
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([120, 60, 120, 60, 250]);
+      }
+    } else {
+      setDuplicateAlert(null);
+      // Trigger getaran lembut normal di HP
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([60, 40, 60]);
+      }
+    }
+
     // Perbarui scanCount dan spotlight kartu hasil scan
     setScanCount((prev) => {
       const nextCount = prev + 1;
@@ -96,15 +133,11 @@ export default function CameraBarcodeScanner({
         code: cleaned,
         courier: courierInfo,
         time: timeStr,
-        count: nextCount
+        count: nextCount,
+        isDuplicate
       });
       return nextCount;
     });
-
-    // Trigger haptic feedback jika HP mendukung vibration
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([60, 40, 60]);
-    }
 
     // Panggil callback parent (otomatis masuk database Supabase)
     if (onScanSuccessRef.current) {
@@ -204,18 +237,23 @@ export default function CameraBarcodeScanner({
     let timer;
     if (isOpen) {
       setLastScanned(null);
+      setDuplicateAlert(null);
       setScanCount(0);
       lastScannedCodeRef.current = "";
+      if (dupTimeoutRef.current) clearTimeout(dupTimeoutRef.current);
       // Delay sedikit agar DOM element viewport ter-mount sempurna
       timer = setTimeout(() => {
         startScanner();
       }, 250);
     } else {
       stopScanner();
+      setDuplicateAlert(null);
+      if (dupTimeoutRef.current) clearTimeout(dupTimeoutRef.current);
     }
 
     return () => {
       if (timer) clearTimeout(timer);
+      if (dupTimeoutRef.current) clearTimeout(dupTimeoutRef.current);
       stopScanner();
     };
   }, [isOpen, startScanner, stopScanner]);
@@ -252,9 +290,32 @@ export default function CameraBarcodeScanner({
 
           {/* Animasi Garis Laser Pemindai */}
           {scannerActive && (
-            <div className="scanner-laser-box">
+            <div className={`scanner-laser-box ${duplicateAlert ? "is-dup-laser" : ""}`}>
               <div className="scanner-laser-line"></div>
               <div className="scanner-target-corners"></div>
+            </div>
+          )}
+
+          {/* Pop-up Peringatan Resi Duplikat di Layar HP */}
+          {duplicateAlert && (
+            <div className="cam-duplicate-popup">
+              <div className="cam-duplicate-icon">
+                <AlertTriangle size={22} color="#ffffff" />
+              </div>
+              <div className="cam-duplicate-content">
+                <div className="cam-duplicate-title">⚠️ RESI DUPLIKAT TERDETEKSI!</div>
+                <div className="cam-duplicate-msg">
+                  No. Resi <strong>{duplicateAlert.code}</strong> ({duplicateAlert.courier?.name || "Ekspedisi"}) sudah pernah discan sebelumnya!
+                </div>
+              </div>
+              <button
+                type="button"
+                className="cam-duplicate-close"
+                onClick={() => setDuplicateAlert(null)}
+                title="Tutup Peringatan"
+              >
+                <X size={16} />
+              </button>
             </div>
           )}
 
@@ -273,11 +334,24 @@ export default function CameraBarcodeScanner({
 
             <button
               type="button"
+              className="cam-ctrl-btn"
+              onClick={() => {
+                unlockAudio();
+                playSuccessBeep();
+              }}
+              title="Uji coba suara HP"
+            >
+              <Volume2 size={15} />
+              <span>Tes Suara</span>
+            </button>
+
+            <button
+              type="button"
               className={`cam-ctrl-btn ${continuousMode ? "active" : ""}`}
               onClick={() => setContinuousMode(!continuousMode)}
             >
               <Layers size={15} />
-              <span>{continuousMode ? "Mode Beruntun (Aktif)" : "Mode Tunggal"}</span>
+              <span>{continuousMode ? "Mode Beruntun" : "Mode Tunggal"}</span>
             </button>
           </div>
         </div>
@@ -304,20 +378,37 @@ export default function CameraBarcodeScanner({
         {/* Status Spotlight Hasil Scan Terakhir */}
         <div className="camera-footer-status">
           {lastScanned ? (
-            <div className="camera-last-scan-card">
-              <div className="cam-scan-check">
-                <CheckCircle2 size={18} color="#16a34a" />
+            <div className={`camera-last-scan-card ${lastScanned.isDuplicate ? "is-duplicate-card" : ""}`}>
+              <div className={`cam-scan-check ${lastScanned.isDuplicate ? "check-dup" : ""}`}>
+                {lastScanned.isDuplicate ? (
+                  <AlertTriangle size={18} color="#dc2626" />
+                ) : (
+                  <CheckCircle2 size={18} color="#16a34a" />
+                )}
               </div>
               <div className="cam-scan-details">
                 <div className="cam-scan-row">
                   <span className="cam-scan-code">{lastScanned.code}</span>
                   <span className="cam-courier-pill">{lastScanned.courier.name}</span>
+                  {lastScanned.isDuplicate ? (
+                    <span className="cam-badge-dup">DUPLIKAT</span>
+                  ) : (
+                    <span className="cam-badge-asli">ASLI</span>
+                  )}
                 </div>
                 <div className="cam-scan-meta">
-                  Pukul {lastScanned.time} WIB • Otomatis tersimpan ke Cloud
+                  {lastScanned.isDuplicate ? (
+                    <span style={{ color: "#ef4444", fontWeight: 600 }}>
+                      ⚠️ Peringatan: Resi ini sudah ada di database sebelumnya!
+                    </span>
+                  ) : (
+                    `Pukul ${lastScanned.time} WIB • Otomatis tersimpan ke Cloud`
+                  )}
                 </div>
               </div>
-              <div className="cam-counter-badge">#{lastScanned.count || scanCount}</div>
+              <div className={`cam-counter-badge ${lastScanned.isDuplicate ? "badge-count-dup" : ""}`}>
+                #{lastScanned.count || scanCount}
+              </div>
             </div>
           ) : (
             <div className="camera-guide-box">

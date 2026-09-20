@@ -20,7 +20,7 @@ import {
   Smartphone
 } from "lucide-react";
 import { detectCourier, cleanTrackingCode } from "./utils/courier";
-import { playCourierSound, playDuplicateSound, unlockAudio } from "./utils/audio";
+import { playCourierSound, playDuplicateSound, unlockAudio, playSuccessBeep } from "./utils/audio";
 import { exportToExcel } from "./utils/exporter";
 import PieSummary from "./components/PieSummary";
 import DataTablePage from "./components/DataTablePage";
@@ -84,6 +84,7 @@ export default function App() {
   const [stockOutItems, setStockOutItems] = useState([]);
   const [isLoadingDb, setIsLoadingDb] = useState(true);
   const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
+  const [showAudioPrompt, setShowAudioPrompt] = useState(false);
 
   // Sync awal dari Database Supabase (Cloud)
   const loadDatabaseFromSupabase = async () => {
@@ -378,6 +379,13 @@ export default function App() {
         }
       })
       .catch((err) => console.error("Gagal simpan scan ke Supabase:", err));
+
+    return {
+      code,
+      courier,
+      isDuplicate,
+      newScan
+    };
   };
 
   // Global listener for USB Barcode Scanner
@@ -634,8 +642,7 @@ export default function App() {
               type="button"
               className="btn-camera-scan-main"
               onClick={() => {
-                unlockAudio();
-                setIsCameraScannerOpen(true);
+                setShowAudioPrompt(true);
               }}
             >
               <div className="btn-camera-scan-icon">
@@ -993,9 +1000,47 @@ export default function App() {
         isOpen={isCameraScannerOpen}
         onClose={() => setIsCameraScannerOpen(false)}
         onScanSuccess={(code) => processScan(code)}
+        existingScans={scans}
         title="Pemindai Kamera HP - Live"
         subtitle="Arahkan kamera HP ke Barcode Garis atau QR Code resi paket"
       />
+
+      {/* Pop-up Dialog Interaksi Pengguna untuk Mengaktifkan Suara HP & Kamera */}
+      {showAudioPrompt && (
+        <div className="audio-prompt-overlay" onClick={() => setShowAudioPrompt(false)}>
+          <div className="audio-prompt-card" onClick={(e) => e.stopPropagation()}>
+            <div className="audio-prompt-icon">
+              <Volume2 size={30} />
+            </div>
+            <h3 className="audio-prompt-title">Aktifkan Pemindai & Audio HP</h3>
+            <p className="audio-prompt-desc">
+              Browser HP (Safari & Chrome) membutuhkan 1x sentuhan agar suara kurir & scan otomatis berbunyi secara lancar.
+            </p>
+            <div className="audio-prompt-actions">
+              <button
+                type="button"
+                className="btn-audio-start"
+                onClick={() => {
+                  unlockAudio();
+                  playSuccessBeep();
+                  setShowAudioPrompt(false);
+                  setIsCameraScannerOpen(true);
+                }}
+              >
+                <Sparkles size={18} />
+                <span>Mulai Scan & Aktifkan Audio</span>
+              </button>
+              <button
+                type="button"
+                className="btn-audio-cancel"
+                onClick={() => setShowAudioPrompt(false)}
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast Notification */}
       {toast && (

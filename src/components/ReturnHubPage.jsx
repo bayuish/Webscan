@@ -1094,15 +1094,6 @@ export default function ReturnHubPage({ soundEnabled = true }) {
                 Export Rekap Retur
               </button>
 
-              <button
-                className="btn-secondary"
-                onClick={handleClearAllReturnData}
-                style={{ color: "#dc2626", borderColor: "#fca5a5" }}
-                title="Hapus seluruh data paket retur dari browser"
-              >
-                <Trash2 size={15} />
-                Hapus Data Retur
-              </button>
             </>
           )}
         </div>

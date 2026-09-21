@@ -91,11 +91,67 @@ export default function App() {
   const loadDatabaseFromSupabase = async () => {
     setIsLoadingDb(true);
     try {
-      const [scansData, stockInData, stockOutData] = await Promise.all([
+      let [scansData, stockInData, stockOutData] = await Promise.all([
         fetchScansHistory(),
         fetchStockInList(),
         fetchStockOutList()
       ]);
+
+      // Migrasi aman: Jika pengguna memiliki data lokal di browser yang belum masuk Supabase
+      try {
+        const localStockIn = localStorage.getItem("webscan_stock_in");
+        if (localStockIn) {
+          const parsed = JSON.parse(localStockIn);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const existingCodes = new Set((stockInData || []).map((s) => `${s.code}_${s.name}_${s.qty}`));
+            for (const item of parsed) {
+              if (!existingCodes.has(`${item.code}_${item.name}_${item.qty}`)) {
+                try {
+                  const saved = await insertStockInItem(item);
+                  if (saved) stockInData = [saved, ...(stockInData || [])];
+                } catch (e) {}
+              }
+            }
+          }
+          localStorage.removeItem("webscan_stock_in");
+        }
+      } catch (e) {}
+
+      try {
+        const localStockOut = localStorage.getItem("webscan_stock_out");
+        if (localStockOut) {
+          const parsed = JSON.parse(localStockOut);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const existingOut = new Set((stockOutData || []).map((s) => `${s.code}_${s.name}_${s.qty}`));
+            for (const item of parsed) {
+              if (!existingOut.has(`${item.code}_${item.name}_${item.qty}`)) {
+                try {
+                  const saved = await insertStockOutItem(item);
+                  if (saved) stockOutData = [saved, ...(stockOutData || [])];
+                } catch (e) {}
+              }
+            }
+          }
+          localStorage.removeItem("webscan_stock_out");
+        }
+      } catch (e) {}
+
+      try {
+        const localScans = localStorage.getItem("webscan_history");
+        if (localScans) {
+          const parsed = JSON.parse(localScans);
+          if (Array.isArray(parsed) && parsed.length > 0 && (!scansData || scansData.length === 0)) {
+            for (const scan of parsed) {
+              try {
+                await insertScanRecord(scan);
+              } catch (e) {}
+            }
+            scansData = await fetchScansHistory();
+          }
+          localStorage.removeItem("webscan_history");
+        }
+      } catch (e) {}
+
       if (scansData) setScans(scansData);
       if (stockInData) setStockInItems(stockInData);
       if (stockOutData) setStockOutItems(stockOutData);
@@ -108,12 +164,6 @@ export default function App() {
 
   useEffect(() => {
     loadDatabaseFromSupabase();
-    // Bersihkan cache lama di localStorage agar tidak ada data basi
-    try {
-      localStorage.removeItem("webscan_history");
-      localStorage.removeItem("webscan_stock_in");
-      localStorage.removeItem("webscan_stock_out");
-    } catch (e) {}
   }, []);
 
   const handleAddStockIn = async (newItem) => {

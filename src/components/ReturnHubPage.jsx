@@ -28,6 +28,7 @@ import CameraBarcodeScanner from "./CameraBarcodeScanner";
 import {
   fetchReturnPackages,
   upsertReturnPackage,
+  batchUpsertReturnPackages,
   markReturnAsReceived,
   clearAllReturnPackages
 } from "../utils/supabaseDb.js";
@@ -132,21 +133,39 @@ export default function ReturnHubPage({ soundEnabled = true }) {
   const [dateBasis, setDateBasis] = useState("CANCELLED");
   const inputRef = useRef(null);
 
-  // Ambil data retur awal dari Database Supabase (Cloud)
+  // Ambil data retur awal dari Database Supabase (Cloud) & migrasikan data lokal jika ada
   useEffect(() => {
-    fetchReturnPackages()
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setReturnItems(data);
-        }
-      })
-      .catch((err) => console.error("Gagal load data retur dari Supabase:", err))
-      .finally(() => setIsLoading(false));
+    async function loadData() {
+      setIsLoading(true);
+      try {
+        let dbData = await fetchReturnPackages();
 
-    // Bersihkan data lama di localStorage
-    try {
-      localStorage.removeItem("webscan_return_data");
-    } catch (e) {}
+        // Cek apakah ada data lokal di localStorage yang belum masuk database
+        let localData = [];
+        try {
+          const raw = localStorage.getItem("webscan_return_data");
+          if (raw) localData = JSON.parse(raw);
+        } catch (e) {}
+
+        if (Array.isArray(localData) && localData.length > 0) {
+          console.log(`Menemukan ${localData.length} data retur di localStorage. Memigrasikan ke Supabase Cloud...`);
+          await batchUpsertReturnPackages(localData);
+          dbData = await fetchReturnPackages();
+          try {
+            localStorage.removeItem("webscan_return_data");
+          } catch (e) {}
+        }
+
+        if (Array.isArray(dbData)) {
+          setReturnItems(dbData);
+        }
+      } catch (err) {
+        console.error("Gagal load data retur dari Supabase:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
   }, []);
 
   // Autofocus input scanner
@@ -312,6 +331,7 @@ export default function ReturnHubPage({ soundEnabled = true }) {
         }
 
         const newlyAddedItems = Array.from(newlyAddedMap.values());
+        const updatedSyncItems = Array.from(updatedSyncMap.values());
         const addedCount = newlyAddedItems.length;
 
         setTimeout(() => {
@@ -321,21 +341,30 @@ export default function ReturnHubPage({ soundEnabled = true }) {
           if (skippedDuplicatesCount > 0) messageParts.push(`${skippedDuplicatesCount} data lama tetap aman`);
 
           if (messageParts.length > 0) {
-            showToast(`✓ Hasil Import: ${messageParts.join(", ")}.`, "success");
+            showToast(`✓ Hasil Import: ${messageParts.join(", ")}. Tersimpan ke Database Cloud Supabase!`, "success");
           } else {
             showToast("Semua data dalam file sudah tersimpan di sistem.", "info");
           }
         }, 100);
 
-        // Simpan data baru dan update sinkronisasi ke database Supabase
-        for (const item of newlyAddedItems) {
-          upsertReturnPackage(item).catch((err) => console.error("Gagal upsert retur:", err));
-        }
-        for (const item of Array.from(updatedSyncMap.values())) {
-          upsertReturnPackage(item).catch((err) => console.error("Gagal update sinkronisasi retur:", err));
+        // Simpan data baru dan update sinkronisasi secara batch ke database Supabase
+        const itemsToSave = [...newlyAddedItems, ...updatedSyncItems];
+        if (itemsToSave.length > 0) {
+          batchUpsertReturnPackages(itemsToSave)
+            .then(() => console.log(`✓ ${itemsToSave.length} data retur berhasil disimpan ke Supabase Cloud`))
+            .catch((err) => {
+              console.error("Gagal simpan batch retur ke Supabase:", err);
+              showToast("Gagal menyimpan data retur ke Supabase Cloud.", "error");
+            });
         }
 
-        return [...updated, ...newlyAddedItems];
+        // FIX: Gabungkan prevItems dengan updatedSyncItems (replace yg tersinkron) + tambah newlyAddedItems
+        const updatedSyncKeys = new Set(updatedSyncMap.keys());
+        const mergedPrev = prevItems.map((item) => {
+          const key = normalizeResiCode(item.trackingId);
+          return updatedSyncKeys.has(key) ? updatedSyncMap.get(key) : item;
+        });
+        return [...mergedPrev, ...newlyAddedItems];
       });
     } catch (err) {
       console.error("Gagal parsing TikTok:", err);
@@ -431,10 +460,28 @@ export default function ReturnHubPage({ soundEnabled = true }) {
         if (alreadyReceivedCount > 0) details.push(`${alreadyReceivedCount} sudah berstatus sampai sebelumnya`);
 
         showToast(
-          `✓ Sinkronisasi Resi Lama (${rawResiList.length} resi): ${details.join(", ")}!`,
+          `✓ Sinkronisasi Resi Lama (${rawResiList.length} resi): ${details.join(", ")}! Tersimpan ke Database Cloud Supabase.`,
           "success"
         );
       }, 100);
+
+      // Simpan seluruh data yang diupdate dan data baru ke database Supabase
+      const itemsToSave = [];
+      updatedList.forEach((item) => {
+        if (matchedResiSet.has(normalizeResiCode(item.trackingId))) {
+          itemsToSave.push(item);
+        }
+      });
+      itemsToSave.push(...newlyAddedManualItems);
+
+      if (itemsToSave.length > 0) {
+        batchUpsertReturnPackages(itemsToSave)
+          .then(() => console.log(`✓ ${itemsToSave.length} sinkronisasi resi lama tersimpan di Supabase Cloud`))
+          .catch((err) => {
+            console.error("Gagal simpan sinkronisasi resi ke Supabase:", err);
+            showToast("Gagal menyimpan sinkronisasi ke Supabase Cloud.", "error");
+          });
+      }
 
       return [...updatedList, ...newlyAddedManualItems];
     });
@@ -602,6 +649,7 @@ export default function ReturnHubPage({ soundEnabled = true }) {
 
   // Toggle manual status sampai / belum
   const toggleItemReceived = (id) => {
+    let targetItem = null;
     const updated = returnItems.map((item) => {
       if (item.id === id) {
         const nextStatus = !item.isReceived;
@@ -620,15 +668,22 @@ export default function ReturnHubPage({ soundEnabled = true }) {
             year: "numeric"
           }) + ", " + timeWIB;
 
-        return {
+        targetItem = {
           ...item,
           isReceived: nextStatus,
           receivedAt: nextStatus ? fullDateWIB : null
         };
+        return targetItem;
       }
       return item;
     });
+
     setReturnItems(updated);
+    if (targetItem) {
+      upsertReturnPackage(targetItem).catch((err) =>
+        console.error("Gagal update status paket ke Supabase:", err)
+      );
+    }
   };
 
   // Export Rekap Retur ke Excel (.xlsx) dengan 3 Sheet: REKAP SEMUA, SUDAH SAMPAI, BELUM SAMPAI

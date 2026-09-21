@@ -131,6 +131,10 @@ export default function ReturnHubPage({ soundEnabled = true }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [dateBasis, setDateBasis] = useState("CANCELLED");
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [scanInput, setScanInput] = useState("");
+  const [lastScannedItem, setLastScannedItem] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef(null);
 
   // Ambil data retur awal dari Database Supabase (Cloud) & migrasikan data lokal jika ada

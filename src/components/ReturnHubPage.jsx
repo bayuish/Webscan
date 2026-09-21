@@ -127,6 +127,9 @@ export default function ReturnHubPage({ soundEnabled = true }) {
   const [toast, setToast] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isCameraScannerOpen, setIsCameraScannerOpen] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [dateBasis, setDateBasis] = useState("CANCELLED");
   const inputRef = useRef(null);
 
   // Ambil data retur awal dari Database Supabase (Cloud)
